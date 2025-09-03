@@ -1,0 +1,34 @@
+[project]
+name = "nebula-cli"
+version = "0.1.0"
+description = "Nebula CLI - A powerful command-line interface for the Nebula toolset"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "inquirer>=3.4.1",
+    "requests>=2.32.4",
+    "rich>=14.1.0",
+    "click>=8.0.0",
+    "typer>=0.9.0",
+]
+authors = [
+    { name = "Nebula Team", email = "team@nebula.dev" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.scripts]
+nebula = "nebula_cli.app:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nebula_cli"]
+

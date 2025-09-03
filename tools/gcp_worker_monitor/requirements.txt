@@ -1,0 +1,5 @@
+rich>=14.1.0
+google-cloud-compute>=1.0.0
+google-cloud-monitoring>=2.0.0
+google-auth>=2.0.0
+
