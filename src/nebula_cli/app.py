@@ -18,6 +18,7 @@ import os
 try:
     from .database import DatabaseManager
     from .auth import AuthenticationManager
+    from .instance_manager import InstanceManager
 except ImportError:
     # Handle case when running as standalone script
     import sys
@@ -25,6 +26,7 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).parent))
     from database import DatabaseManager
     from auth import AuthenticationManager
+    from instance_manager import InstanceManager
 
 console = Console()
 
@@ -65,6 +67,7 @@ class NebulaCLI:
         # Initialize database and authentication
         self.db_manager = DatabaseManager()
         self.auth_manager = AuthenticationManager(self.db_manager)
+        self.instance_manager = InstanceManager(self.db_manager, self.auth_manager)
         
         # Check authentication status on startup
         self._check_authentication()
@@ -205,6 +208,7 @@ Available Commands:
   - Toolset Info: Show available tools in the toolset
   - Authentication: Manage user authentication and project settings
   - Configuration: View and manage CLI configuration settings
+  - Instance Manager: Manage compute instances
   - Run Tool: Execute a specific tool
   - Help: Show this help message
   - Exit: Exit the CLI
@@ -275,6 +279,41 @@ For more information, visit: https://github.com/nebula/toolset
         else:
             console.print(f"[yellow]Configuration '{key}' not found[/yellow]")
 
+    def manage_instances(self):
+        """Manage instances."""
+        instance_menu = [
+            inquirer.List(
+                'instance_action',
+                message="Instance Management Options:",
+                choices=[
+                    'List Instances',
+                    'Start Instance',
+                    'Stop Instance',
+                    'Back to Main Menu'
+                ],
+            ),
+        ]
+
+        while True:
+            instance_answers = inquirer.prompt(instance_menu)
+            if not instance_answers or instance_answers['instance_action'] == 'Back to Main Menu':
+                break
+
+            instance_action = instance_answers['instance_action']
+
+            if instance_action == 'List Instances':
+                self.instance_manager.list_instances()
+            elif instance_action == 'Start Instance':
+                instance_name = inquirer.text("Enter instance name to start:")
+                if instance_name:
+                    self.instance_manager.start_instance(instance_name)
+            elif instance_action == 'Stop Instance':
+                instance_name = inquirer.text("Enter instance name to stop:")
+                if instance_name:
+                    self.instance_manager.stop_instance(instance_name)
+            
+            console.print()
+
 def welcome_message():
     """Display welcome message."""
     welcome_text = Text("Nebula CLI", style="bold blue")
@@ -311,6 +350,11 @@ def parse_arguments():
   # Run specific tool
   python app.py --run-tool <tool-name> [tool arguments...]
   
+  # Instance management commands
+  python app.py --list-instances
+  python app.py --start-instance <instance-name>
+  python app.py --stop-instance <instance-name>
+  
   # Show help
   python app.py --help
 """
@@ -335,6 +379,12 @@ def parse_arguments():
                        help='Get configuration value')
     parser.add_argument('--run-tool', type=str,
                        help='Run a specific tool')
+    parser.add_argument('--list-instances', action='store_true',
+                          help='List all instances')
+    parser.add_argument('--start-instance', type=str,
+                            help='Start an instance')
+    parser.add_argument('--stop-instance', type=str,
+                           help='Stop an instance')
     parser.add_argument('--quiet', action='store_true',
                        help='Suppress non-essential output')
     parser.add_argument('--json-output', action='store_true',
@@ -387,6 +437,18 @@ def run_headless_mode(args, nebula_cli, logger):
         elif args.run_tool:
             nebula_cli.run_tool(args.run_tool, args.tool_args)
             return 0
+
+        elif args.list_instances:
+            nebula_cli.instance_manager.list_instances()
+            return 0
+
+        elif args.start_instance:
+            nebula_cli.instance_manager.start_instance(args.start_instance)
+            return 0
+
+        elif args.stop_instance:
+            nebula_cli.instance_manager.stop_instance(args.stop_instance)
+            return 0
         
     except Exception as e:
         logger.error(f"Headless mode error: {e}")
@@ -412,6 +474,7 @@ def run_interactive_mode(nebula_cli, logger):
                     'Toolset Information',
                     'Authentication',
                     'Configuration',
+                    'Instance Manager',
                     'Run Tool',
                     'Help',
                     'Exit'
@@ -499,6 +562,9 @@ def run_interactive_mode(nebula_cli, logger):
                             nebula_cli.get_config(key)
                     
                     console.print()  # Add spacing
+
+            elif action == 'Instance Manager':
+                nebula_cli.manage_instances()
                 
             elif action == 'Run Tool':
                 # Get available tools from the tools directory
@@ -571,7 +637,10 @@ def main():
         args.config,
         args.set_config,
         args.get_config,
-        args.run_tool
+        args.run_tool,
+        args.list_instances,
+        args.start_instance,
+        args.stop_instance
     ])
     
     if headless_mode:

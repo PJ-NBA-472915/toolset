@@ -8,6 +8,7 @@ A powerful command-line interface for the Nebula toolset, providing an intuitive
 - **Authentication Management**: GCP OAuth integration with project ID management
 - **Database Management**: SQLite-based storage for authentication and configuration data
 - **Tool System**: Modular architecture for running and managing various tools
+- **Instance Management**: Start, stop, and list compute instances
 - **Rich Output**: Beautiful terminal output with colors, tables, and formatting
 - **System Information**: Display system details and environment information
 - **Toolset Discovery**: Automatically discover and list available tools
@@ -94,6 +95,11 @@ python src/nebula_cli/app.py --toolset-info
 
 # Run a specific tool
 python src/nebula_cli/app.py --run-tool <tool-name>
+
+# Instance management
+python src/nebula_cli/app.py --list-instances
+python src/nebula_cli/app.py --start-instance <instance-name>
+python src/nebula_cli/app.py --stop-instance <instance-name>
 
 # Show help
 python src/nebula_cli/app.py --help
