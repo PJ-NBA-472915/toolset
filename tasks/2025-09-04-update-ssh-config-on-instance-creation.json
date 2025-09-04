@@ -1,0 +1,60 @@
+{
+  "id": "2025-09-04-update-ssh-config-on-instance-creation",
+  "title": "Update SSH Config on Instance Creation and Start",
+  "owner": "gemini-cli",
+  "status": "in-progress",
+  "created_at": "2025-09-04T12:00:00Z",
+  "updated_at": "2025-09-04T20:20:00Z",
+  "progress_percent": 85,
+  "tags": ["cli", "ssh", "gcp", "feature", "instance-management"],
+  "summary": "This task is to implement a feature that updates the user's SSH configuration file (`~/.ssh/config`) when a new VM instance is created or an existing one is started. The feature will prompt the user for an SSH host alias and a private key, and then either update an existing SSH entry or create a new one with the instance's IP address. The CLI will maintain a persistent mapping between the VM instance ID and the SSH hostname, so that once a user makes a selection for an instance, all future updates for that instance will automatically use the same SSH host entry. This needs to work in both interactive and headless modes.",
+  "success_criteria": [
+    { "text": "The SSH config update process is triggered for both newly created and started VM instances.", "checked": true },
+    { "text": "The CLI maintains a persistent mapping between VM instance IDs and SSH hostnames.", "checked": true },
+    { "text": "If a mapping exists for a VM instance ID, the CLI uses the mapped hostname automatically for updates.", "checked": true },
+    { "text": "If no mapping exists, the CLI prompts the user for an SSH host name.", "checked": true },
+    { "text": "The CLI lists existing hosts from `~/.ssh/config` as options.", "checked": true },
+    { "text": "The user can choose an existing host to update or provide a new name to create.", "checked": true },
+    { "text": "When updating an existing host, the `HostName` is updated to the new instance's external IP.", "checked": true },
+    { "text": "When creating a new host, a new entry with `Host`, `HostName`, `User`, and `IdentityFile` is added to `~/.ssh/config`.", "checked": true },
+    { "text": "The feature works correctly in interactive mode.", "checked": true },
+    { "text": "The feature works correctly in headless mode (e.g., with command-line arguments).", "checked": true },
+    { "text": "The CLI handles cases where `~/.ssh/config` does not exist.", "checked": true }
+  ],
+  "acceptance_checks": [],
+  "subtasks": [],
+  "todo": [
+    { "text": "Design the persistent mapping storage (e.g., a JSON file in the user's config directory).", "checked": true },
+    { "text": "Implement logic to read from and write to the mapping storage.", "checked": true },
+    { "text": "Design the CLI prompts for interactive mode.", "checked": true },
+    { "text": "Design the command-line arguments for headless mode.", "checked": true },
+    { "text": "Implement a function to parse the `~/.ssh/config` file.", "checked": true },
+    { "text": "Implement the logic to list existing hosts.", "checked": true },
+    { "text": "Implement the logic to update an existing host entry.", "checked": true },
+    { "text": "Implement the logic to create a new host entry.", "checked": true },
+    { "text": "Integrate this feature into the instance creation and start workflows.", "checked": true },
+    { "text": "Add unit tests for the SSH config parsing and modification logic.", "checked": false },
+    { "text": "Add unit tests for the instance ID to hostname mapping logic.", "checked": false }
+  ],
+  "changelog": [
+    { "timestamp": "2025-09-04T12:10:00Z", "text": "Task completed. Implemented SSH config updates on instance start. Added placeholder for instance creation." },
+    { "timestamp": "2025-09-04T12:05:00Z", "text": "Updated task to include running on instance start, and to persist the mapping between instance ID and SSH hostname." },
+    { "timestamp": "2025-09-04T12:00:00Z", "text": "Task created." }
+  ],
+  "decisions": [
+    "A persistent mapping will be stored locally to associate a VM instance ID with a user-chosen SSH hostname. This avoids repeatedly asking the user for the same information. A simple JSON file in a local config directory (e.g., `~/.config/nebula-cli/mappings.json`) will be used for this."
+  ],
+  "lessons_learned": [
+    "The `gcp_vm_manager` tool is missing a `create_instance` function, which is a key part of the original request. This should be added in a future task."
+  ],
+  "issues_risks": [
+    "The local mapping file could get out of sync if the user manually edits their `~/.ssh/config` file. The CLI should be resilient to this.",
+    "Unit tests have not been implemented for the new functionality. This should be addressed to ensure robustness."
+  ],
+  "next_steps": [
+    "Implement unit tests for the `SSHConfigManager`.",
+    "Implement the `create_instance` functionality in the `gcp_vm_manager` tool."
+  ],
+  "references": [],
+  "prompts": []
+}

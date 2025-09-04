@@ -17,8 +17,66 @@ from rich.panel import Panel
 from rich.text import Text
 from rich import print as rprint
 import inquirer
+from pathlib import Path
+
+# Add src to path to import nebula_cli modules
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+from nebula_cli.ssh_config_manager import SSHConfigManager
 
 console = Console()
+
+def handle_ssh_config_update(instance_id: str, instance_name: str, external_ip: str, args: argparse.Namespace):
+    """Handles the SSH config update process."""
+    ssh_manager = SSHConfigManager()
+    hostname = ssh_manager.get_hostname_for_instance(instance_id)
+
+    if hostname:
+        # Update existing entry
+        console.print(f"[blue]Updating SSH config for host '{hostname}'...[/blue]")
+        user = args.ssh_user if args.ssh_user else inquirer.text("Enter user for SSH connection:")
+        key_path = args.ssh_key_path if args.ssh_key_path else inquirer.text("Enter path to private key for SSH connection:")
+        ssh_manager.update_ssh_host(hostname, external_ip, user, key_path)
+        console.print(f"[green]SSH config updated for host '{hostname}'.[/green]")
+    else:
+        if args.yes:
+            new_host = instance_name
+            user = args.ssh_user if args.ssh_user else "nebula"
+            key_path = args.ssh_key_path if args.ssh_key_path else f"~/.ssh/{instance_name}_key"
+            ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
+            ssh_manager.set_hostname_for_instance(instance_id, new_host)
+            console.print(f"[green]New SSH host '{new_host}' created.[/green]")
+            return
+
+        # Prompt user to create a new entry or update an existing one
+        console.print("[blue]SSH configuration for this instance is not set up.[/blue]")
+        hosts = ssh_manager.get_ssh_hosts()
+        choices = hosts + ["Create a new host"]
+        
+        questions = [
+            inquirer.List('host_choice',
+                          message="Choose an existing SSH host to update or create a new one:",
+                          choices=choices)
+        ]
+        answers = inquirer.prompt(questions)
+        
+        if not answers:
+            return
+
+        choice = answers['host_choice']
+        
+        if choice == "Create a new host":
+            new_host = inquirer.text("Enter a name for the new SSH host:")
+            user = inquirer.text("Enter user for SSH connection:")
+            key_path = inquirer.text("Enter path to private key for SSH connection:")
+            ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
+            ssh_manager.set_hostname_for_instance(instance_id, new_host)
+            console.print(f"[green]New SSH host '{new_host}' created.[/green]")
+        else:
+            user = inquirer.text("Enter user for SSH connection:")
+            key_path = inquirer.text("Enter path to private key for SSH connection:")
+            ssh_manager.update_ssh_host(choice, external_ip, user, key_path)
+            ssh_manager.set_hostname_for_instance(instance_id, choice)
+            console.print(f"[green]SSH host '{choice}' updated.[/green]")
 
 class GCPVMManager:
     def __init__(self):
@@ -73,7 +131,7 @@ class GCPVMManager:
             sys.exit(1)
         return project_id
     
-    def list_instances(self, project_id: str, zone: Optional[str] = None, status_filter: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_instances(self, project_id: str, zone: Optional[str] = None) -> List[Dict[str, Any]]:
         """List all VM instances in the project."""
         try:
             cmd = [
@@ -85,6 +143,7 @@ class GCPVMManager:
             if zone:
                 cmd.extend(["--zones", zone])
             
+            print("gcloud command:", " ".join(cmd))
             self.console.print("[blue]🔍 Fetching VM instances...[/blue]")
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
@@ -93,10 +152,6 @@ class GCPVMManager:
                 return []
             
             instances = json.loads(result.stdout)
-            
-            # Filter by status if specified
-            if status_filter:
-                instances = [inst for inst in instances if inst.get('status', '').upper() == status_filter.upper()]
             
             self.console.print(f"[green]✅ Found {len(instances)} instances[/green]")
             return instances
@@ -158,6 +213,35 @@ class GCPVMManager:
         
         self.console.print(table)
     
+    def get_instance_details(self, instance_name: str, zone: str, project_id: str) -> Optional[Dict[str, Any]]:
+        """Get details of a specific VM instance."""
+        try:
+            cmd = [
+                "gcloud", "compute", "instances", "describe",
+                instance_name,
+                "--zone", zone,
+                "--project", project_id,
+                "--format", "json"
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            
+            if result.returncode != 0:
+                self.console.print(f"[red]❌ Failed to get instance details: {result.stderr}[/red]")
+                return None
+            
+            return json.loads(result.stdout)
+            
+        except json.JSONDecodeError:
+            self.console.print("[red]❌ Failed to parse instance data[/red]")
+            return None
+        except subprocess.TimeoutExpired:
+            self.console.print("[red]❌ Command timed out[/red]")
+            return None
+        except Exception as e:
+            self.console.print(f"[red]❌ Error getting instance details: {e}[/red]")
+            return None
+
     def select_instance_interactive(self, instances: List[Dict[str, Any]], action: str) -> Optional[Dict[str, Any]]:
         """Allow user to select an instance interactively."""
         if not instances:
@@ -193,7 +277,7 @@ class GCPVMManager:
         
         return None
     
-    def start_instance(self, instance_name: str, zone: str, project_id: str, wait: bool = False) -> bool:
+    def start_instance(self, instance_name: str, zone: str, project_id: str, wait: bool = False, args: argparse.Namespace = None) -> bool:
         """Start a VM instance."""
         try:
             self.console.print(f"[yellow]🚀 Starting instance '{instance_name}' in zone '{zone}'...[/yellow]")
@@ -212,6 +296,21 @@ class GCPVMManager:
                 
                 if wait:
                     self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
+
+                # Get instance details to find the external IP
+                instance_details = self.get_instance_details(instance_name, zone, project_id)
+                if instance_details:
+                    external_ip = None
+                    for network_interface in instance_details.get('networkInterfaces', []):
+                        access_configs = network_interface.get('accessConfigs', [])
+                        if access_configs:
+                            external_ip = access_configs[0].get('natIP')
+                            break
+                    
+                    if external_ip:
+                        handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
+                    else:
+                        self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
                 
                 return True
             else:
@@ -291,6 +390,19 @@ class GCPVMManager:
         self.console.print(f"[yellow]⚠️  Timeout waiting for instance to reach {target_status}[/yellow]")
         return False
     
+    def create_instance(self, project_id: str, zone: str):
+        """Create a new VM instance."""
+        self.console.print("[yellow]⚠️  Instance creation is not yet implemented in this tool.[/yellow]")
+        # Placeholder for instance creation logic
+        # After creating the instance, you would get its details and call handle_ssh_config_update
+        # Example:
+        # instance_name = "newly-created-instance"
+        # self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
+        # instance_details = self.get_instance_details(instance_name, zone, project_id)
+        # if instance_details:
+        #     external_ip = ...
+        #     handle_ssh_config_update(instance_details['id'], instance_name, external_ip)
+
     def confirm_action(self, action: str, instance_name: str, zone: str) -> bool:
         """Ask for confirmation before performing destructive actions."""
         if action.lower() in ['stop', 'terminate']:
@@ -499,7 +611,9 @@ class GCPVMManager:
         
         elif args.start_instance:
             # Find the instance to start
-            instances = self.list_instances(project_id, zone, "TERMINATED")
+            all_instances = self.list_instances(project_id, zone)
+            instances = [inst for inst in all_instances if inst.get('status', '').upper() == "TERMINATED"]
+            print("Terminated instances:", instances)
             target_instance = None
             
             for instance in instances:
@@ -512,11 +626,13 @@ class GCPVMManager:
                 return False
             
             instance_zone = target_instance.get('zone', '').split('/')[-1]
-            return self.start_instance(args.start_instance, instance_zone, project_id, args.wait)
+            return self.start_instance(args.start_instance, instance_zone, project_id, args.wait, args)
         
         elif args.stop_instance:
             # Find the instance to stop
-            instances = self.list_instances(project_id, zone, "RUNNING")
+            all_instances = self.list_instances(project_id, zone)
+            instances = [inst for inst in all_instances if inst.get('status', '').upper() == "RUNNING"]
+            print("Running instances:", instances)
             target_instance = None
             
             for instance in instances:
@@ -628,6 +744,8 @@ Examples:
     parser.add_argument('--stop-all', action='store_true', help='Stop all running instances')
     parser.add_argument('--yes', action='store_true', help='Skip confirmation prompts')
     parser.add_argument('--wait', action='store_true', help='Wait for operation to complete')
+    parser.add_argument('--ssh-user', type=str, help='User for SSH connection')
+    parser.add_argument('--ssh-key-path', type=str, help='Path to private key for SSH connection')
     
     args = parser.parse_args()
     

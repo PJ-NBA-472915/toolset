@@ -17,6 +17,7 @@ try:
     from .database import DatabaseManager
     from .auth import AuthenticationManager
     from .logger import log
+    from .ssh_config_manager import SSHConfigManager
 except ImportError:
     # Handle case when running as standalone script
     import sys
@@ -25,6 +26,8 @@ except ImportError:
     from database import DatabaseManager
     from auth import AuthenticationManager
     from logger import log
+    from ssh_config_manager import SSHConfigManager
+
 
 console = Console()
 
@@ -35,6 +38,7 @@ class NebulaCLI:
         # Initialize database and authentication
         self.db_manager = DatabaseManager()
         self.auth_manager = AuthenticationManager(self.db_manager)
+        self.ssh_config_manager = SSHConfigManager()
         
         # Check authentication status on startup
         self._check_authentication()
@@ -332,6 +336,12 @@ Examples:
                        help='Get configuration value')
     parser.add_argument('--run-tool', type=str,
                        help='Run a specific tool')
+    parser.add_argument('--list-ssh-hosts', action='store_true',
+                          help='List SSH hosts')
+    parser.add_argument('--update-ssh-host', nargs=4, metavar=('HOST', 'HOSTNAME', 'USER', 'KEY_PATH'),
+                            help='Update an SSH host')
+    parser.add_argument('--add-ssh-host', nargs=4, metavar=('HOST', 'HOSTNAME', 'USER', 'KEY_PATH'),
+                            help='Add an SSH host')
     parser.add_argument('--quiet', action='store_true',
                        help='Suppress non-essential output')
     parser.add_argument('--json-output', action='store_true',
@@ -385,6 +395,28 @@ def run_headless_mode(args, nebula_cli):
             nebula_cli.run_tool(args.run_tool, args.tool_args)
             return 0
         
+        elif args.list_ssh_hosts:
+            hosts = nebula_cli.ssh_config_manager.get_ssh_hosts()
+            if hosts:
+                console.print("[green]Available SSH Hosts:[/green]")
+                for host in hosts:
+                    console.print(f"- {host}")
+            else:
+                console.print("[yellow]No SSH hosts found.[/yellow]")
+            return 0
+
+        elif args.update_ssh_host:
+            host, hostname, user, key_path = args.update_ssh_host
+            nebula_cli.ssh_config_manager.update_ssh_host(host, hostname, user, key_path)
+            console.print(f"[green]Host '{host}' updated.[/green]")
+            return 0
+
+        elif args.add_ssh_host:
+            host, hostname, user, key_path = args.add_ssh_host
+            nebula_cli.ssh_config_manager.add_ssh_host(host, hostname, user, key_path)
+            console.print(f"[green]Host '{host}' added.[/green]")
+            return 0
+        
     except Exception as e:
         log.error(f"Headless mode error: {e}", exc_info=True)
         console.print(f"[red]Error: {e}[/red]")
@@ -409,6 +441,7 @@ def run_interactive_mode(nebula_cli):
                     'Toolset Information',
                     'Authentication',
                     'Configuration',
+                    'SSH Config',
                     'Run Tool',
                     'Help',
                     'Exit'
@@ -496,6 +529,62 @@ def run_interactive_mode(nebula_cli):
                             nebula_cli.get_config(key)
                     
                     console.print()  # Add spacing
+
+            elif action == 'SSH Config':
+                # SSH Config submenu
+                ssh_menu = [
+                    inquirer.List(
+                        'ssh_action',
+                        message="SSH Config Options:",
+                        choices=[
+                            'List SSH Hosts',
+                            'Update SSH Host',
+                            'Add SSH Host',
+                            'Back to Main Menu'
+                        ],
+                    ),
+                ]
+
+                while True:
+                    ssh_answers = inquirer.prompt(ssh_menu)
+                    if not ssh_answers or ssh_answers['ssh_action'] == 'Back to Main Menu':
+                        break
+
+                    ssh_action = ssh_answers['ssh_action']
+
+                    if ssh_action == 'List SSH Hosts':
+                        hosts = nebula_cli.ssh_config_manager.get_ssh_hosts()
+                        if hosts:
+                            console.print("[green]Available SSH Hosts:[/green]")
+                            for host in hosts:
+                                console.print(f"- {host}")
+                        else:
+                            console.print("[yellow]No SSH hosts found.[/yellow]")
+                    elif ssh_action == 'Update SSH Host':
+                        hosts = nebula_cli.ssh_config_manager.get_ssh_hosts()
+                        if not hosts:
+                            console.print("[yellow]No SSH hosts found to update.[/yellow]")
+                            continue
+                        
+                        host_q = inquirer.List('host', message="Select a host to update:", choices=hosts)
+                        host_answer = inquirer.prompt([host_q])
+                        if not host_answer:
+                            continue
+
+                        host = host_answer['host']
+                        hostname = inquirer.text("Enter new hostname (IP address):")
+                        user = inquirer.text("Enter user:")
+                        key_path = inquirer.text("Enter path to key file:")
+                        nebula_cli.ssh_config_manager.update_ssh_host(host, hostname, user, key_path)
+                        console.print(f"[green]Host '{host}' updated.[/green]")
+
+                    elif ssh_action == 'Add SSH Host':
+                        host = inquirer.text("Enter new host name:")
+                        hostname = inquirer.text("Enter hostname (IP address):")
+                        user = inquirer.text("Enter user:")
+                        key_path = inquirer.text("Enter path to key file:")
+                        nebula_cli.ssh_config_manager.add_ssh_host(host, hostname, user, key_path)
+                        console.print(f"[green]Host '{host}' added.[/green]")
 
             elif action == 'Run Tool':
                 # Get available tools from the tools directory
