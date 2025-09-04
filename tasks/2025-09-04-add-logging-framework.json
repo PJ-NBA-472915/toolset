@@ -4,36 +4,34 @@
   "owner": "Assistant",
   "status": "planned",
   "created_at": "2025-09-04 14:00",
-  "updated_at": "2025-09-04 14:05",
+  "updated_at": "2025-09-04 14:10",
   "progress_percent": 0,
   "tags": ["cli", "logging", "audit", "observability", "architecture"],
-  "summary": "Implement a robust, modular logging framework for the Nebula CLI to ensure a complete audit trail of all actions. The framework will be designed to support multiple logging transports (e.g., file, console, remote service), with the initial implementation focusing on a file-based JSON logger.",
+  "summary": "Implement a robust, modular logging framework for the Nebula CLI to ensure a complete audit trail of all actions. The framework will be designed to support multiple logging transports and daily log file rotation. The initial implementation will focus on a file-based JSON logger.",
   "success_criteria": [
     {"text": "A centralized and modular logging function/module is created.", "checked": false},
     {"text": "The logging framework is designed to be extensible with new transports.", "checked": false},
-    {"text": "The default configuration uses a file-based transport.", "checked": false},
+    {"text": "The default configuration uses a file-based transport with daily log rotation.", "checked": false},
     {"text": "Log output is in JSON format.", "checked": false},
     {"text": "All CLI commands and significant actions are logged.", "checked": false},
-    {"text": "Log rotation is implemented for the file transport.", "checked": false},
     {"text": "Sensitive information is redacted from logs.", "checked": false}
   ],
   "acceptance_checks": [
-    {"text": "Running any CLI command generates a corresponding log entry in the specified file.", "checked": false},
+    {"text": "Running any CLI command generates a corresponding log entry in a daily log file (e.g., cli-2025-09-04.log).", "checked": false},
     {"text": "Log entries are valid JSON objects.", "checked": false},
-    {"text": "The log file is created in a predictable location (e.g., ~/.nebula/logs/).", "checked": false},
-    {"text": "The logging system can be configured to use different transports in the future without a major refactor.", "checked": false}
+    {"text": "Log files are created in a predictable location (e.g., ~/.nebula/logs/).", "checked": false},
+    {"text": "A new log file is created automatically when the date changes.", "checked": false}
   ],
   "subtasks": [
-    "Research and select a suitable Python logging library that supports multiple handlers/sinks (e.g., Loguru, standard logging).",
-    "Design a modular transport system for logging (e.g., using classes for different transports).",
+    "Research and select a suitable Python logging library that supports multiple handlers/sinks and time-based rotation (e.g., Loguru).",
+    "Design a modular transport system for logging.",
     "Design the structure of the JSON log entries.",
     "Implement the core logging module with the transport architecture.",
-    "Implement the initial file-based JSON transport.",
+    "Implement the initial file-based JSON transport, including daily log rotation.",
     "Integrate logging calls into all existing CLI commands.",
-    "Implement log rotation for the file transport.",
     "Implement redaction of sensitive data.",
-    "Add configuration options for logging (e.g., log level, transport settings).",
-    "Write documentation for the logging framework and how to add new transports."
+    "Add configuration options for logging (e.g., log level, transport settings, rotation policy).",
+    "Write documentation for the logging framework, including rotation and transport extension."
   ],
   "todo": [
     {"text": "Select logging library.", "status": "planned", "date_started": null, "date_stopped": null},
@@ -43,25 +41,29 @@
   ],
   "changelog": [
     {"timestamp": "2025-09-04 14:00", "text": "Task created."},
-    {"timestamp": "2025-09-04 14:05", "text": "Updated task to include requirements for a modular, multi-transport logging architecture."}
+    {"timestamp": "2025-09-04 14:05", "text": "Updated task to include requirements for a modular, multi-transport logging architecture."},
+    {"timestamp": "2025-09-04 14:10", "text": "Added daily log file rotation as an explicit requirement for the file transport."}
   ],
   "decisions": [],
   "lessons_learned": [],
   "issues_risks": [
     "Performance impact of extensive logging.",
     "Security implications of storing logs.",
-    "Over-engineering the transport system for the initial MVP."
+    "Management of a large number of log files over time (retention policies may be needed)."
   ],
   "next_steps": [
-    "Begin research on logging libraries with a focus on extensibility."
+    "Begin research on logging libraries with a focus on extensibility and time-based rotation."
   ],
-  "references": [],
+  "references": [
+    "Monolog library as an example of daily rotation."
+  ],
   "migration": {"migrated": false, "source_path": null, "method": null, "migrated_at": null},
   "metadata": {
     "log_format": "json",
     "initial_transport": "file",
     "supported_transports": ["file"],
-    "default_log_path": "~/.nebula/logs/cli.log"
+    "rotation_policy": "daily",
+    "default_log_path": "~/.nebula/logs/"
   },
   "prompts": [
     {
@@ -73,6 +75,11 @@
       "timestamp": "2025-09-04 14:05",
       "text": "adjust the task file to allow for potentially adding other transports outside of the files later.",
       "context": "User request to make the logging framework modular and extensible."
+    },
+    {
+      "timestamp": "2025-09-04 14:10",
+      "text": "add file rotation as a requirement too. I know monolog does daily log files. I would like to have something like that to be implemented as well. So that everything does not go into the one file.",
+      "context": "User request for daily log file rotation."
     }
   ]
 }
