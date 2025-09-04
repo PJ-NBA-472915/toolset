@@ -131,7 +131,7 @@ class GCPVMManager:
             sys.exit(1)
         return project_id
     
-    def list_instances(self, project_id: str, zone: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_instances(self, project_id: str, zone: Optional[str] = None, status: Optional[str] = None) -> List[Dict[str, Any]]:
         """List all VM instances in the project."""
         try:
             cmd = [
@@ -142,6 +142,9 @@ class GCPVMManager:
             
             if zone:
                 cmd.extend(["--zones", zone])
+            
+            if status:
+                cmd.extend(["--filter", f"status={status}"])
             
             print("gcloud command:", " ".join(cmd))
             self.console.print("[blue]🔍 Fetching VM instances...[/blue]")
@@ -390,18 +393,60 @@ class GCPVMManager:
         self.console.print(f"[yellow]⚠️  Timeout waiting for instance to reach {target_status}[/yellow]")
         return False
     
-    def create_instance(self, project_id: str, zone: str):
+    def create_instance(self, project_id: str, zone: str, instance_name: str = None, machine_type: str = "e2-micro", image_family: str = "ubuntu-2004-lts", image_project: str = "ubuntu-os-cloud", args: argparse.Namespace = None) -> bool:
         """Create a new VM instance."""
-        self.console.print("[yellow]⚠️  Instance creation is not yet implemented in this tool.[/yellow]")
-        # Placeholder for instance creation logic
-        # After creating the instance, you would get its details and call handle_ssh_config_update
-        # Example:
-        # instance_name = "newly-created-instance"
-        # self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
-        # instance_details = self.get_instance_details(instance_name, zone, project_id)
-        # if instance_details:
-        #     external_ip = ...
-        #     handle_ssh_config_update(instance_details['id'], instance_name, external_ip)
+        try:
+            if not instance_name:
+                instance_name = f"nebula-instance-{int(time.time())}"
+            
+            self.console.print(f"[yellow]🚀 Creating instance '{instance_name}' in zone '{zone}'...[/yellow]")
+            
+            cmd = [
+                "gcloud", "compute", "instances", "create", instance_name,
+                "--zone", zone,
+                "--project", project_id,
+                "--machine-type", machine_type,
+                "--image-family", image_family,
+                "--image-project", image_project,
+                "--boot-disk-size", "10GB",
+                "--boot-disk-type", "pd-standard",
+                "--format", "json"
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            
+            if result.returncode == 0:
+                self.console.print(f"[green]✅ Instance '{instance_name}' created successfully![/green]")
+                
+                # Wait for instance to be running
+                self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
+                
+                # Get instance details to find the external IP
+                instance_details = self.get_instance_details(instance_name, zone, project_id)
+                if instance_details:
+                    external_ip = None
+                    for network_interface in instance_details.get('networkInterfaces', []):
+                        access_configs = network_interface.get('accessConfigs', [])
+                        if access_configs:
+                            external_ip = access_configs[0].get('natIP')
+                            break
+                    
+                    if external_ip:
+                        handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
+                    else:
+                        self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
+                
+                return True
+            else:
+                self.console.print(f"[red]❌ Failed to create instance: {result.stderr}[/red]")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            self.console.print("[red]❌ Create operation timed out[/red]")
+            return False
+        except Exception as e:
+            self.console.print(f"[red]❌ Error creating instance: {e}[/red]")
+            return False
 
     def confirm_action(self, action: str, instance_name: str, zone: str) -> bool:
         """Ask for confirmation before performing destructive actions."""
@@ -488,6 +533,7 @@ class GCPVMManager:
                         'List All Instances',
                         'List Running Instances',
                         'List Terminated Instances',
+                        'Create Instance',
                         'Start Instance',
                         'Stop Instance',
                         'Start All Instances',
@@ -515,6 +561,24 @@ class GCPVMManager:
                 elif action == 'List Terminated Instances':
                     instances = self.list_instances(project_id, zone, "TERMINATED")
                     self.display_instances_table(instances, "Terminated VM Instances")
+                
+                elif action == 'Create Instance':
+                    # Prompt for instance creation parameters
+                    instance_name = inquirer.text("Enter instance name (or press Enter for auto-generated):")
+                    if not instance_name.strip():
+                        instance_name = None
+                    
+                    zone_choice = inquirer.text("Enter zone (e.g., us-central1-a):")
+                    if not zone_choice.strip():
+                        self.console.print("[red]❌ Zone is required for instance creation.[/red]")
+                        continue
+                    
+                    machine_type = inquirer.text("Enter machine type (default: e2-micro):")
+                    if not machine_type.strip():
+                        machine_type = "e2-micro"
+                    
+                    if self.create_instance(project_id, zone_choice, instance_name, machine_type):
+                        self.console.print(f"[green]🎉 Instance created successfully![/green]")
                 
                 elif action == 'Start Instance':
                     # Show only terminated instances for starting
@@ -608,6 +672,21 @@ class GCPVMManager:
         elif args.list_terminated:
             instances = self.list_instances(project_id, zone, "TERMINATED")
             self.display_instances_table(instances, "Terminated VM Instances")
+        
+        elif args.create_instance:
+            if not zone:
+                self.console.print("[red]❌ Zone is required for instance creation. Use --zone option.[/red]")
+                return False
+            
+            return self.create_instance(
+                project_id, 
+                zone, 
+                args.create_instance, 
+                args.machine_type, 
+                args.image_family, 
+                args.image_project, 
+                args
+            )
         
         elif args.start_instance:
             # Find the instance to start
@@ -711,6 +790,9 @@ Examples:
   # List terminated instances
   python main.py --list-terminated
   
+  # Create a new instance
+  python main.py --create-instance my-new-instance --zone us-central1-a
+  
   # Start a specific instance
   python main.py --start-instance my-instance --zone us-central1-a
   
@@ -738,6 +820,10 @@ Examples:
     parser.add_argument('--list-terminated', action='store_true', help='List terminated instances')
     
     # Instance management options
+    parser.add_argument('--create-instance', type=str, help='Create a new instance with specified name')
+    parser.add_argument('--machine-type', type=str, default='e2-micro', help='Machine type for new instance (default: e2-micro)')
+    parser.add_argument('--image-family', type=str, default='ubuntu-2004-lts', help='Image family for new instance (default: ubuntu-2004-lts)')
+    parser.add_argument('--image-project', type=str, default='ubuntu-os-cloud', help='Image project for new instance (default: ubuntu-os-cloud)')
     parser.add_argument('--start-instance', type=str, help='Start a specific instance')
     parser.add_argument('--stop-instance', type=str, help='Stop a specific instance')
     parser.add_argument('--start-all', action='store_true', help='Start all terminated instances')
@@ -754,6 +840,7 @@ Examples:
         args.list_all,
         args.list_running,
         args.list_terminated,
+        args.create_instance,
         args.start_instance,
         args.stop_instance,
         args.start_all,
@@ -778,12 +865,14 @@ Examples:
         print("  --list-all          List all instances")
         print("  --list-running      List running instances")
         print("  --list-terminated   List terminated instances")
+        print("  --create-instance   Create a new instance")
         print("  --start-all         Start all terminated instances")
         print("  --stop-all          Stop all running instances")
         print("  --start-instance    Start a specific instance")
         print("  --stop-instance     Stop a specific instance")
         print("  --help              Show all options")
         print("\n💡 Examples:")
+        print("  python main.py --create-instance my-instance --zone us-central1-a")
         print("  python main.py --start-all --wait")
         print("  python main.py --stop-all --yes --wait")
         print("  python main.py --list-running")
