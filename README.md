@@ -8,7 +8,7 @@ A powerful command-line interface for the Nebula toolset, providing an intuitive
 - **Authentication Management**: GCP OAuth integration with project ID management
 - **Database Management**: SQLite-based storage for authentication and configuration data
 - **Tool System**: Modular architecture for running and managing various tools
-- **Instance Management**: Start, stop, and list compute instances
+- **GCP VM Management**: Comprehensive instance management with bulk operations
 - **Rich Output**: Beautiful terminal output with colors, tables, and formatting
 - **System Information**: Display system details and environment information
 - **Toolset Discovery**: Automatically discover and list available tools
@@ -96,10 +96,10 @@ python src/nebula_cli/app.py --toolset-info
 # Run a specific tool
 python src/nebula_cli/app.py --run-tool <tool-name>
 
-# Instance management
-python src/nebula_cli/app.py --list-instances
-python src/nebula_cli/app.py --start-instance <instance-name>
-python src/nebula_cli/app.py --stop-instance <instance-name>
+# GCP VM management (via tools)
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-all
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-all --wait
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-all --yes --wait
 
 # Show help
 python src/nebula_cli/app.py --help
@@ -184,11 +184,63 @@ toolset/
 └── README.md
 ```
 
+## GCP VM Manager
+
+The GCP VM Manager is a powerful tool for managing Google Cloud Platform virtual machine instances with both interactive and command-line interfaces.
+
+### Features
+
+- **Bulk Operations**: Start all instances or stop all instances at once
+- **Status Filtering**: View instances by status (running, terminated, all)
+- **Interactive Selection**: Use arrow keys to select instances from lists
+- **Safety Confirmations**: Prompts for confirmation before destructive actions
+- **Wait Support**: Wait for operations to complete before returning
+- **Rich Output**: Beautiful formatted tables with instance details
+
+### Usage Examples
+
+```bash
+# Interactive mode (shows available instances and usage info)
+python src/nebula_cli/app.py --run-tool gcp_vm_manager
+
+# List instances
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-all
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-running
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-terminated
+
+# Bulk operations
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-all --wait
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-all --yes --wait
+
+# Individual instance management
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-instance my-instance --zone us-central1-a --wait
+python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-instance my-instance --zone us-central1-a --yes --wait
+```
+
+### Command Line Options
+
+- `--project`: GCP project ID (default: current project)
+- `--zone`: GCP zone to filter instances
+- `--list-all`: List all instances
+- `--list-running`: List running instances only
+- `--list-terminated`: List terminated instances only
+- `--start-instance`: Start a specific instance by name
+- `--stop-instance`: Stop a specific instance by name
+- `--start-all`: Start all terminated instances
+- `--stop-all`: Stop all running instances
+- `--yes`: Skip confirmation prompts
+- `--wait`: Wait for operation to complete before returning
+
 ## Tools System
 
 The CLI includes a modular tool system located in the `tools/` directory:
 
 ### Available Tools
+
+- **gcp_vm_manager**: Comprehensive Google Cloud Platform VM instance management
+  - Features: Start/stop instances, bulk operations, interactive selection, status filtering
+  - Commands: `--start-all`, `--stop-all`, `--list-running`, `--list-terminated`
+  - Usage: `make run-tool TOOL=gcp_vm_manager` or `python src/nebula_cli/app.py --run-tool gcp_vm_manager`
 
 - **list_gcp_workers**: Monitor and list Google Cloud Platform worker instances
   - Features: Resource monitoring, network details, data export

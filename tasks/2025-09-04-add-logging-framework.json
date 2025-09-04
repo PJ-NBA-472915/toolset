@@ -1,0 +1,78 @@
+{
+  "id": "2025-09-04-add-logging-framework",
+  "title": "Add Logging Framework to CLI",
+  "owner": "Assistant",
+  "status": "planned",
+  "created_at": "2025-09-04 14:00",
+  "updated_at": "2025-09-04 14:05",
+  "progress_percent": 0,
+  "tags": ["cli", "logging", "audit", "observability", "architecture"],
+  "summary": "Implement a robust, modular logging framework for the Nebula CLI to ensure a complete audit trail of all actions. The framework will be designed to support multiple logging transports (e.g., file, console, remote service), with the initial implementation focusing on a file-based JSON logger.",
+  "success_criteria": [
+    {"text": "A centralized and modular logging function/module is created.", "checked": false},
+    {"text": "The logging framework is designed to be extensible with new transports.", "checked": false},
+    {"text": "The default configuration uses a file-based transport.", "checked": false},
+    {"text": "Log output is in JSON format.", "checked": false},
+    {"text": "All CLI commands and significant actions are logged.", "checked": false},
+    {"text": "Log rotation is implemented for the file transport.", "checked": false},
+    {"text": "Sensitive information is redacted from logs.", "checked": false}
+  ],
+  "acceptance_checks": [
+    {"text": "Running any CLI command generates a corresponding log entry in the specified file.", "checked": false},
+    {"text": "Log entries are valid JSON objects.", "checked": false},
+    {"text": "The log file is created in a predictable location (e.g., ~/.nebula/logs/).", "checked": false},
+    {"text": "The logging system can be configured to use different transports in the future without a major refactor.", "checked": false}
+  ],
+  "subtasks": [
+    "Research and select a suitable Python logging library that supports multiple handlers/sinks (e.g., Loguru, standard logging).",
+    "Design a modular transport system for logging (e.g., using classes for different transports).",
+    "Design the structure of the JSON log entries.",
+    "Implement the core logging module with the transport architecture.",
+    "Implement the initial file-based JSON transport.",
+    "Integrate logging calls into all existing CLI commands.",
+    "Implement log rotation for the file transport.",
+    "Implement redaction of sensitive data.",
+    "Add configuration options for logging (e.g., log level, transport settings).",
+    "Write documentation for the logging framework and how to add new transports."
+  ],
+  "todo": [
+    {"text": "Select logging library.", "status": "planned", "date_started": null, "date_stopped": null},
+    {"text": "Design modular transport architecture.", "status": "planned", "date_started": null, "date_stopped": null},
+    {"text": "Design JSON log structure.", "status": "planned", "date_started": null, "date_stopped": null},
+    {"text": "Implement core logging module.", "status": "planned", "date_started": null, "date_stopped": null}
+  ],
+  "changelog": [
+    {"timestamp": "2025-09-04 14:00", "text": "Task created."},
+    {"timestamp": "2025-09-04 14:05", "text": "Updated task to include requirements for a modular, multi-transport logging architecture."}
+  ],
+  "decisions": [],
+  "lessons_learned": [],
+  "issues_risks": [
+    "Performance impact of extensive logging.",
+    "Security implications of storing logs.",
+    "Over-engineering the transport system for the initial MVP."
+  ],
+  "next_steps": [
+    "Begin research on logging libraries with a focus on extensibility."
+  ],
+  "references": [],
+  "migration": {"migrated": false, "source_path": null, "method": null, "migrated_at": null},
+  "metadata": {
+    "log_format": "json",
+    "initial_transport": "file",
+    "supported_transports": ["file"],
+    "default_log_path": "~/.nebula/logs/cli.log"
+  },
+  "prompts": [
+    {
+      "timestamp": "2025-09-04 14:00",
+      "text": "Add a detailed task that is in line with the rule about working with tasks for adding a logging framework for the cli. Create a logger function that defaults to file logging in json format and keep a complete audit of all the actions in the cli.",
+      "context": "Initial user request for logging framework."
+    },
+    {
+      "timestamp": "2025-09-04 14:05",
+      "text": "adjust the task file to allow for potentially adding other transports outside of the files later.",
+      "context": "User request to make the logging framework modular and extensible."
+    }
+  ]
+}

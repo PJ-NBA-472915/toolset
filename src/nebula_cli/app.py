@@ -170,12 +170,20 @@ class NebulaCLI:
                 cmd.extend(tool_args)
             
             # Run the tool in a subprocess
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=tool_path
-            )
+            # If no tool_args provided, run interactively (no output capture)
+            if not tool_args:
+                result = subprocess.run(
+                    cmd,
+                    cwd=tool_path
+                )
+                return result.returncode == 0
+            else:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    cwd=tool_path
+                )
             
             if result.returncode == 0:
                 console.print(f"[green]Tool '{tool_name}' executed successfully![/green]")

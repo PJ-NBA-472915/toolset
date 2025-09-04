@@ -650,7 +650,33 @@ Examples:
         sys.exit(0 if success else 1)
     else:
         project_id = args.project or manager.get_project_id()
-        manager.run_interactive_mode(project_id, args.zone)
+        # Show available instances and usage instructions
+        print("🔍 GCP VM Manager - Available Instances")
+        print("=" * 50)
+        instances = manager.list_instances(project_id, args.zone)
+        manager.display_instances_table(instances, "Available VM Instances")
+        
+        print("\n📋 Available Operations:")
+        print("  --list-all          List all instances")
+        print("  --list-running      List running instances")
+        print("  --list-terminated   List terminated instances")
+        print("  --start-all         Start all terminated instances")
+        print("  --stop-all          Stop all running instances")
+        print("  --start-instance    Start a specific instance")
+        print("  --stop-instance     Stop a specific instance")
+        print("  --help              Show all options")
+        print("\n💡 Examples:")
+        print("  python main.py --start-all --wait")
+        print("  python main.py --stop-all --yes --wait")
+        print("  python main.py --list-running")
+        
+        # Try interactive mode as fallback
+        try:
+            print("\n🔄 Starting interactive mode...")
+            manager.run_interactive_mode(project_id, args.zone)
+        except Exception as e:
+            print(f"\n⚠️  Interactive mode unavailable: {e}")
+            print("Please use command-line arguments for operations.")
 
 if __name__ == "__main__":
     main()
