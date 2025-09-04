@@ -9,15 +9,14 @@ from rich.panel import Panel
 from rich.text import Text
 from rich.table import Table
 from rich import print as rprint
-import logging
 import sys
 import argparse
 from pathlib import Path
-from datetime import datetime
 import os
 try:
     from .database import DatabaseManager
     from .auth import AuthenticationManager
+    from .logger import log
 except ImportError:
     # Handle case when running as standalone script
     import sys
@@ -25,42 +24,13 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).parent))
     from database import DatabaseManager
     from auth import AuthenticationManager
+    from logger import log
 
 console = Console()
 
-# Setup logging
-def setup_logging():
-    """Setup comprehensive logging for the application."""
-    # Create logs directory if it doesn't exist
-    logs_dir = Path.home() / '.nebula' / 'cli_logs'
-    logs_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Setup log file with timestamp
-    timestamp = datetime.now().strftime('%Y%m%d')
-    log_file = logs_dir / f'nebula_cli_{timestamp}.log'
-    
-    # Configure logging
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout) if os.getenv('NEBULA_CLI_DEBUG') else logging.NullHandler()
-        ]
-    )
-    
-    logger = logging.getLogger(__name__)
-    logger.info(f"Nebula CLI started - Log file: {log_file}")
-    logger.info(f"Python version: {sys.version}")
-    logger.info(f"Working directory: {os.getcwd()}")
-    logger.info(f"User: {os.getenv('USER', 'unknown')}")
-    
-    return logger
-
 class NebulaCLI:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.logger.info("NebulaCLI initialized")
+        log.info("NebulaCLI initialized")
         
         # Initialize database and authentication
         self.db_manager = DatabaseManager()
@@ -72,15 +42,16 @@ class NebulaCLI:
     def _check_authentication(self):
         """Check authentication status on startup"""
         if not self.auth_manager.is_authenticated():
-            self.logger.info("User not authenticated")
+            log.info("User not authenticated")
             # Don't force authentication on startup, let individual features handle it
         else:
-            self.logger.info("User is authenticated")
+            log.info("User is authenticated")
             auth_info = self.auth_manager.get_auth_info()
-            self.logger.info(f"Authenticated as: {auth_info['user_id']} (Project: {auth_info['project_id']})")
+            log.info(f"Authenticated as: {auth_info['user_id']} (Project: {auth_info['project_id']})")
         
     def show_system_info(self):
         """Display system information."""
+        log.info("Displaying system info.")
         console.print("[yellow]Fetching system information...[/yellow]")
         
         table = Table(title="System Information")
@@ -96,6 +67,7 @@ class NebulaCLI:
     
     def show_toolset_info(self):
         """Display information about the Nebula toolset."""
+        log.info("Displaying toolset info.")
         console.print("[yellow]Nebula Toolset Information[/yellow]")
         
         toolset_path = Path(__file__).parent.parent.parent
@@ -143,6 +115,7 @@ class NebulaCLI:
     
     def run_tool(self, tool_name, tool_args=None):
         """Run a specific tool from the toolset."""
+        log.info(f"Running tool: {tool_name} with args: {tool_args}")
         console.print(f"[blue]Running tool: {tool_name}[/blue]")
         
         # Look for the tool in the tools directory
@@ -150,12 +123,14 @@ class NebulaCLI:
         tool_path = toolset_path / "tools" / tool_name
         
         if not tool_path.exists():
+            log.error(f"Tool '{tool_name}' not found at path: {tool_path}")
             console.print(f"[red]Tool '{tool_name}' not found[/red]")
             return False
         
         # Check if the tool has a main.py file
         main_file = tool_path / "main.py"
         if not main_file.exists():
+            log.error(f"Tool '{tool_name}' does not have a main.py file.")
             console.print(f"[red]Tool '{tool_name}' does not have a main.py file[/red]")
             return False
         
@@ -186,11 +161,13 @@ class NebulaCLI:
                 )
             
             if result.returncode == 0:
+                log.info(f"Tool '{tool_name}' executed successfully.")
                 console.print(f"[green]Tool '{tool_name}' executed successfully![/green]")
                 if result.stdout:
                     console.print("\n[blue]Tool Output:[/blue]")
                     console.print(result.stdout)
             else:
+                log.error(f"Tool '{tool_name}' failed with exit code {result.returncode}. Stderr: {result.stderr}")
                 console.print(f"[red]Tool '{tool_name}' failed with exit code {result.returncode}[/red]")
                 if result.stderr:
                     console.print("\n[red]Error Output:[/red]")
@@ -198,6 +175,7 @@ class NebulaCLI:
                 return False
                 
         except Exception as e:
+            log.error(f"Failed to execute tool '{tool_name}': {e}", exc_info=True)
             console.print(f"[red]Failed to execute tool '{tool_name}': {e}[/red]")
             return False
         
@@ -205,6 +183,7 @@ class NebulaCLI:
     
     def show_help(self):
         """Display help information."""
+        log.info("Displaying help.")
         help_text = """
 Nebula CLI - A powerful command-line interface for the Nebula toolset
 
@@ -236,18 +215,22 @@ For more information, visit: https://github.com/nebula/toolset
     
     def show_auth_status(self):
         """Display authentication status."""
+        log.info("Displaying auth status.")
         self.auth_manager.show_auth_status()
     
     def authenticate_user(self):
         """Authenticate user."""
+        log.info("Starting user authentication.")
         return self.auth_manager.authenticate_user()
     
     def logout_user(self):
         """Logout user."""
+        log.info("Logging out user.")
         return self.auth_manager.logout()
     
     def show_config(self):
         """Display configuration settings."""
+        log.info("Displaying configuration.")
         console.print("[yellow]Configuration Settings[/yellow]")
         
         config = self.db_manager.get_all_config()
@@ -270,6 +253,7 @@ For more information, visit: https://github.com/nebula/toolset
     
     def set_config(self, key: str, value: str):
         """Set configuration value."""
+        log.info(f"Setting config key: {key}")
         success = self.db_manager.set_config(key, value)
         if success:
             console.print(f"[green]Configuration '{key}' set successfully[/green]")
@@ -278,6 +262,7 @@ For more information, visit: https://github.com/nebula/toolset
     
     def get_config(self, key: str):
         """Get configuration value."""
+        log.info(f"Getting config key: {key}")
         value = self.db_manager.get_config(key)
         if value is not None:
             console.print(f"[green]{key}: {value}[/green]")
@@ -298,7 +283,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(
         description="Nebula CLI - A powerful command-line interface for the Nebula toolset",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""Examples:
+        epilog="""
+Examples:
   # Interactive mode (default)
   python app.py
   
@@ -357,9 +343,9 @@ def parse_arguments():
     
     return args
 
-def run_headless_mode(args, nebula_cli, logger):
+def run_headless_mode(args, nebula_cli):
     """Run the CLI in headless mode based on arguments."""
-    logger.info(f"Running in headless mode with args: {vars(args)}")
+    log.info(f"Running in headless mode with args: {vars(args)}")
     
     try:
         if args.system_info:
@@ -400,15 +386,15 @@ def run_headless_mode(args, nebula_cli, logger):
             return 0
         
     except Exception as e:
-        logger.error(f"Headless mode error: {e}")
+        log.error(f"Headless mode error: {e}", exc_info=True)
         console.print(f"[red]Error: {e}[/red]")
         return 1
     
     return 0
 
-def run_interactive_mode(nebula_cli, logger):
+def run_interactive_mode(nebula_cli):
     """Run the CLI in interactive mode."""
-    logger.info("Running in interactive mode")
+    log.info("Running in interactive mode")
     
     try:
         welcome_message()
@@ -436,7 +422,7 @@ def run_interactive_mode(nebula_cli, logger):
                 break
             
             action = answers['action']
-            logger.info(f"User selected action: {action}")
+            log.info(f"User selected action: {action}")
             
             if action == 'System Information':
                 nebula_cli.show_system_info()
@@ -539,7 +525,7 @@ def run_interactive_mode(nebula_cli, logger):
                 if not tool_answer:
                     continue
                 
-                logger.info(f"User selected tool: {tool_answer['tool']}")
+                log.info(f"User selected tool: {tool_answer['tool']}")
                 nebula_cli.run_tool(tool_answer['tool'])
                 
             elif action == 'Help':
@@ -551,11 +537,11 @@ def run_interactive_mode(nebula_cli, logger):
         return 0
         
     except KeyboardInterrupt:
+        log.warning("Interactive mode cancelled by user.")
         console.print("\n\n[red]Operation cancelled by user.[/red]")
-        logger.info("Interactive mode cancelled by user")
         return 1
     except Exception as e:
-        logger.error(f"Interactive mode error: {e}")
+        log.error(f"Interactive mode error: {e}", exc_info=True)
         console.print(f"\n[red]An error occurred: {e}[/red]")
         return 1
 
@@ -565,9 +551,8 @@ def main():
     args = parse_arguments()
     
     # Initialize logging
-    logger = setup_logging()
-    logger.info("Starting Nebula CLI")
-    logger.info(f"Command-line arguments: {vars(args)}")
+    log.info("Starting Nebula CLI")
+    log.info(f"Command-line arguments: {vars(args)}")
     
     # Initialize Nebula CLI
     nebula_cli = NebulaCLI()
@@ -586,9 +571,9 @@ def main():
     ])
     
     if headless_mode:
-        return run_headless_mode(args, nebula_cli, logger)
+        return run_headless_mode(args, nebula_cli)
     else:
-        return run_interactive_mode(nebula_cli, logger)
+        return run_interactive_mode(nebula_cli)
 
 if __name__ == "__main__":
     sys.exit(main())
