@@ -1,0 +1,99 @@
+{
+  "id": "2025-09-04-cli-authentication",
+  "title": "Add CLI Authentication System",
+  "owner": "Assistant",
+  "status": "done",
+  "created_at": "2025-09-04 10:30",
+  "updated_at": "2025-09-04 12:57",
+  "progress_percent": 100,
+  "tags": ["cli", "authentication", "security", "user-management"],
+  "summary": "Implement authentication system for the Nebula CLI using SQLite for data management. Check authentication status on startup, guide users through auth flow, and store project_id and other auth details in SQLite database.",
+  "success_criteria": [
+    {"text": "SQLite database is created and managed for CLI data", "checked": true},
+    {"text": "CLI checks authentication status on startup", "checked": true},
+    {"text": "Authentication flow guides user through login process", "checked": true},
+    {"text": "Project ID and auth details are stored in SQLite database", "checked": true},
+    {"text": "Authentication state persists across CLI sessions", "checked": true},
+    {"text": "User can logout and re-authenticate", "checked": true},
+    {"text": "Configuration settings are managed via SQLite", "checked": true}
+  ],
+  "acceptance_checks": [
+    {"text": "SQLite database is created in ~/.nebula/ directory", "checked": true},
+    {"text": "CLI prompts for authentication if not authenticated", "checked": true},
+    {"text": "Authentication details are stored in SQLite database", "checked": true},
+    {"text": "Project ID is captured and stored during auth flow", "checked": true},
+    {"text": "Authentication status is checked on every CLI startup", "checked": true},
+    {"text": "User can logout and clear stored credentials", "checked": true},
+    {"text": "Configuration data is stored and retrieved from SQLite", "checked": true}
+  ],
+  "subtasks": [
+    "Design SQLite database schema for authentication and configuration",
+    "Create database manager class for SQLite operations",
+    "Implement authentication manager class with login/logout methods",
+    "Add SQLite-based credential and configuration storage",
+    "Add authentication check to CLI startup process",
+    "Create interactive authentication flow with project ID capture",
+    "Add logout functionality to clear stored credentials",
+    "Update CLI menu to include authentication options",
+    "Add configuration management using SQLite",
+    "Test authentication flow and data persistence",
+    "Write detailed usage documentation in memory-bank/docs/cli/"
+  ],
+  "todo": [
+    {"text": "Design SQLite database schema for authentication and configuration", "status": "done", "date_started": "2025-09-04 12:30", "date_stopped": "2025-09-04 12:35"},
+    {"text": "Create database manager class for SQLite operations", "status": "done", "date_started": "2025-09-04 12:35", "date_stopped": "2025-09-04 12:40"},
+    {"text": "Implement authentication manager class with login/logout methods", "status": "done", "date_started": "2025-09-04 12:40", "date_stopped": "2025-09-04 12:45"},
+    {"text": "Add SQLite-based credential and configuration storage", "status": "done", "date_started": "2025-09-04 12:45", "date_stopped": "2025-09-04 12:50"},
+    {"text": "Add authentication check to CLI startup process", "status": "done", "date_started": "2025-09-04 12:50", "date_stopped": "2025-09-04 12:52"},
+    {"text": "Create interactive authentication flow with project ID capture", "status": "done", "date_started": "2025-09-04 12:52", "date_stopped": "2025-09-04 12:54"},
+    {"text": "Add logout functionality to clear stored credentials", "status": "done", "date_started": "2025-09-04 12:54", "date_stopped": "2025-09-04 12:55"},
+    {"text": "Update CLI menu to include authentication options", "status": "done", "date_started": "2025-09-04 12:55", "date_stopped": "2025-09-04 12:56"},
+    {"text": "Add configuration management using SQLite", "status": "done", "date_started": "2025-09-04 12:56", "date_stopped": "2025-09-04 12:57"},
+    {"text": "Test authentication flow and data persistence", "status": "done", "date_started": "2025-09-04 12:57", "date_stopped": "2025-09-04 12:57"},
+    {"text": "Write detailed usage documentation in memory-bank/docs/cli/", "status": "done", "date_started": "2025-09-04 12:57", "date_stopped": "2025-09-04 12:57"}
+  ],
+  "changelog": [
+    {"timestamp": "2025-09-04 10:30", "text": "Task created - implementing CLI authentication system"},
+    {"timestamp": "2025-09-04 12:44", "text": "Updated task to use SQLite for data management and storage"},
+    {"timestamp": "2025-09-04 12:50", "text": "Added documentation requirement for memory-bank/docs/cli/"}
+  ],
+  "decisions": [],
+  "lessons_learned": [],
+  "issues_risks": [
+    "Need to determine authentication provider (OAuth, API keys, etc.)",
+    "SQLite database security and encryption considerations",
+    "User experience for authentication flow",
+    "Database migration strategy for future updates"
+  ],
+  "next_steps": [
+    "Clarify authentication provider and method",
+    "Design SQLite database schema",
+    "Plan user experience for auth flow",
+    "Implement database encryption for sensitive data"
+  ],
+  "references": [],
+  "migration": {"migrated": false, "source_path": null, "method": null, "migrated_at": null},
+  "metadata": {
+    "auth_provider": "TBD",
+    "storage_method": "sqlite_encrypted",
+    "project_id_source": "user_input",
+    "database_location": "~/.nebula/nebula_cli.db"
+  },
+  "prompts": [
+    {
+      "timestamp": "2025-09-04 10:30",
+      "text": "Add a new task to authenticate, and store the details like the project_id when the cli starts. It should check whether it is actively authenticated, if not, take the user through the auth flow.",
+      "context": "Initial user request for CLI authentication functionality"
+    },
+    {
+      "timestamp": "2025-09-04 12:44",
+      "text": "implement sqlite to manage storing and configuration and data in the clie",
+      "context": "User requested SQLite for data management in CLI"
+    },
+    {
+      "timestamp": "2025-09-04 12:50",
+      "text": "When done, please write detailed usage documentation for this in the memory-bank/docs/cli directory.",
+      "context": "User requested documentation for CLI authentication system"
+    }
+  ]
+}

@@ -15,6 +15,16 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 import os
+try:
+    from .database import DatabaseManager
+    from .auth import AuthenticationManager
+except ImportError:
+    # Handle case when running as standalone script
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    from database import DatabaseManager
+    from auth import AuthenticationManager
 
 console = Console()
 
@@ -51,6 +61,23 @@ class NebulaCLI:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.logger.info("NebulaCLI initialized")
+        
+        # Initialize database and authentication
+        self.db_manager = DatabaseManager()
+        self.auth_manager = AuthenticationManager(self.db_manager)
+        
+        # Check authentication status on startup
+        self._check_authentication()
+    
+    def _check_authentication(self):
+        """Check authentication status on startup"""
+        if not self.auth_manager.is_authenticated():
+            self.logger.info("User not authenticated")
+            # Don't force authentication on startup, let individual features handle it
+        else:
+            self.logger.info("User is authenticated")
+            auth_info = self.auth_manager.get_auth_info()
+            self.logger.info(f"Authenticated as: {auth_info['user_id']} (Project: {auth_info['project_id']})")
         
     def show_system_info(self):
         """Display system information."""
@@ -176,14 +203,77 @@ Nebula CLI - A powerful command-line interface for the Nebula toolset
 Available Commands:
   - System Info: Display system information
   - Toolset Info: Show available tools in the toolset
+  - Authentication: Manage user authentication and project settings
+  - Configuration: View and manage CLI configuration settings
   - Run Tool: Execute a specific tool
   - Help: Show this help message
   - Exit: Exit the CLI
+
+Authentication Features:
+  - Login with API key and project ID
+  - View authentication status
+  - Logout and clear credentials
+  - Automatic authentication checking
+
+Configuration Features:
+  - Store and retrieve configuration values
+  - View all configuration settings
+  - Persistent storage using SQLite database
 
 For more information, visit: https://github.com/nebula/toolset
         """
         
         console.print(Panel(help_text, title="Help", border_style="blue"))
+    
+    def show_auth_status(self):
+        """Display authentication status."""
+        self.auth_manager.show_auth_status()
+    
+    def authenticate_user(self):
+        """Authenticate user."""
+        return self.auth_manager.authenticate_user()
+    
+    def logout_user(self):
+        """Logout user."""
+        return self.auth_manager.logout()
+    
+    def show_config(self):
+        """Display configuration settings."""
+        console.print("[yellow]Configuration Settings[/yellow]")
+        
+        config = self.db_manager.get_all_config()
+        if not config:
+            console.print("[yellow]No configuration settings found[/yellow]")
+            return
+        
+        table = Table(title="Configuration")
+        table.add_column("Key", style="cyan")
+        table.add_column("Value", style="green")
+        
+        for key, value in config.items():
+            # Truncate long values for display
+            display_value = str(value)
+            if len(display_value) > 50:
+                display_value = display_value[:47] + "..."
+            table.add_row(key, display_value)
+        
+        console.print(table)
+    
+    def set_config(self, key: str, value: str):
+        """Set configuration value."""
+        success = self.db_manager.set_config(key, value)
+        if success:
+            console.print(f"[green]Configuration '{key}' set successfully[/green]")
+        else:
+            console.print(f"[red]Failed to set configuration '{key}'[/red]")
+    
+    def get_config(self, key: str):
+        """Get configuration value."""
+        value = self.db_manager.get_config(key)
+        if value is not None:
+            console.print(f"[green]{key}: {value}[/green]")
+        else:
+            console.print(f"[yellow]Configuration '{key}' not found[/yellow]")
 
 def welcome_message():
     """Display welcome message."""
@@ -208,6 +298,16 @@ def parse_arguments():
   # Show toolset info
   python app.py --toolset-info
   
+  # Authentication commands
+  python app.py --auth-status
+  python app.py --login
+  python app.py --logout
+  
+  # Configuration commands
+  python app.py --config
+  python app.py --set-config key value
+  python app.py --get-config key
+  
   # Run specific tool
   python app.py --run-tool <tool-name> [tool arguments...]
   
@@ -221,6 +321,18 @@ def parse_arguments():
                        help='Show system information')
     parser.add_argument('--toolset-info', action='store_true',
                        help='Show toolset information')
+    parser.add_argument('--auth-status', action='store_true',
+                       help='Show authentication status')
+    parser.add_argument('--login', action='store_true',
+                       help='Authenticate user')
+    parser.add_argument('--logout', action='store_true',
+                       help='Logout user')
+    parser.add_argument('--config', action='store_true',
+                       help='Show configuration settings')
+    parser.add_argument('--set-config', nargs=2, metavar=('KEY', 'VALUE'),
+                       help='Set configuration value')
+    parser.add_argument('--get-config', type=str,
+                       help='Get configuration value')
     parser.add_argument('--run-tool', type=str,
                        help='Run a specific tool')
     parser.add_argument('--quiet', action='store_true',
@@ -245,6 +357,31 @@ def run_headless_mode(args, nebula_cli, logger):
             
         elif args.toolset_info:
             nebula_cli.show_toolset_info()
+            return 0
+            
+        elif args.auth_status:
+            nebula_cli.show_auth_status()
+            return 0
+            
+        elif args.login:
+            success = nebula_cli.authenticate_user()
+            return 0 if success else 1
+            
+        elif args.logout:
+            success = nebula_cli.logout_user()
+            return 0 if success else 1
+            
+        elif args.config:
+            nebula_cli.show_config()
+            return 0
+            
+        elif args.set_config:
+            key, value = args.set_config
+            nebula_cli.set_config(key, value)
+            return 0
+            
+        elif args.get_config:
+            nebula_cli.get_config(args.get_config)
             return 0
             
         elif args.run_tool:
@@ -273,6 +410,8 @@ def run_interactive_mode(nebula_cli, logger):
                 choices=[
                     'System Information',
                     'Toolset Information',
+                    'Authentication',
+                    'Configuration',
                     'Run Tool',
                     'Help',
                     'Exit'
@@ -293,6 +432,73 @@ def run_interactive_mode(nebula_cli, logger):
                 
             elif action == 'Toolset Info':
                 nebula_cli.show_toolset_info()
+                
+            elif action == 'Authentication':
+                # Authentication submenu
+                auth_menu = [
+                    inquirer.List(
+                        'auth_action',
+                        message="Authentication Options:",
+                        choices=[
+                            'Show Status',
+                            'Login',
+                            'Logout',
+                            'Back to Main Menu'
+                        ],
+                    ),
+                ]
+                
+                while True:
+                    auth_answers = inquirer.prompt(auth_menu)
+                    if not auth_answers or auth_answers['auth_action'] == 'Back to Main Menu':
+                        break
+                    
+                    auth_action = auth_answers['auth_action']
+                    
+                    if auth_action == 'Show Status':
+                        nebula_cli.show_auth_status()
+                    elif auth_action == 'Login':
+                        nebula_cli.authenticate_user()
+                    elif auth_action == 'Logout':
+                        nebula_cli.logout_user()
+                    
+                    console.print()  # Add spacing
+                
+            elif action == 'Configuration':
+                # Configuration submenu
+                config_menu = [
+                    inquirer.List(
+                        'config_action',
+                        message="Configuration Options:",
+                        choices=[
+                            'Show All Settings',
+                            'Set Configuration',
+                            'Get Configuration',
+                            'Back to Main Menu'
+                        ],
+                    ),
+                ]
+                
+                while True:
+                    config_answers = inquirer.prompt(config_menu)
+                    if not config_answers or config_answers['config_action'] == 'Back to Main Menu':
+                        break
+                    
+                    config_action = config_answers['config_action']
+                    
+                    if config_action == 'Show All Settings':
+                        nebula_cli.show_config()
+                    elif config_action == 'Set Configuration':
+                        key = inquirer.text("Enter configuration key:")
+                        value = inquirer.text("Enter configuration value:")
+                        if key and value:
+                            nebula_cli.set_config(key, value)
+                    elif config_action == 'Get Configuration':
+                        key = inquirer.text("Enter configuration key:")
+                        if key:
+                            nebula_cli.get_config(key)
+                    
+                    console.print()  # Add spacing
                 
             elif action == 'Run Tool':
                 # Get available tools from the tools directory
@@ -359,6 +565,12 @@ def main():
     headless_mode = any([
         args.system_info,
         args.toolset_info,
+        args.auth_status,
+        args.login,
+        args.logout,
+        args.config,
+        args.set_config,
+        args.get_config,
         args.run_tool
     ])
     

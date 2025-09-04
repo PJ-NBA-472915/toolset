@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Google Cloud Platform Worker Monitor Tool
-Lists worker instances with detailed information including resource usage and public IPs
+List GCP Workers Tool
+Lists Google Cloud Platform worker instances with detailed information including resource usage and public IPs
 """
 
 import sys
@@ -18,7 +18,7 @@ from rich import print as rprint
 
 console = Console()
 
-class GCPWorkerMonitor:
+class ListGCPWorkers:
     def __init__(self):
         self.console = Console()
         self.check_gcloud_auth()
@@ -327,7 +327,7 @@ Tags: {json.dumps(instance['tags'], indent=2) if instance['tags'] else 'None'}
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Google Cloud Platform Worker Monitor Tool",
+        description="List GCP Workers Tool",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -361,7 +361,7 @@ Examples:
     args = parser.parse_args()
     
     # Create and run the monitor
-    monitor = GCPWorkerMonitor()
+    monitor = ListGCPWorkers()
     monitor.run(args)
 
 if __name__ == "__main__":

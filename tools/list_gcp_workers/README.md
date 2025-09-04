@@ -1,6 +1,6 @@
-# GCP Worker Monitor Tool
+# List GCP Workers Tool
 
-A tool for monitoring Google Cloud Platform worker instances, providing detailed information about resource usage, network configuration, and instance status.
+A tool for listing and monitoring Google Cloud Platform worker instances, providing detailed information about resource usage, network configuration, and instance status.
 
 ## Features
 
@@ -24,7 +24,7 @@ A tool for monitoring Google Cloud Platform worker instances, providing detailed
 pip install -r requirements.txt
 
 # Or install via the main CLI
-make run-tool TOOL=gcp_worker_monitor
+make run-tool TOOL=list_gcp_workers
 ```
 
 ## Usage
@@ -69,8 +69,8 @@ This tool integrates seamlessly with the Nebula CLI:
 
 ```bash
 # Run via CLI
-make run-tool TOOL=gcp_worker_monitor
+make run-tool TOOL=list_gcp_workers
 
 # Or directly
-python src/nebula_cli/app.py --run-tool gcp_worker_monitor
+python src/nebula_cli/app.py --run-tool list_gcp_workers
 ```
