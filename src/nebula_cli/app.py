@@ -332,9 +332,9 @@ Examples:
                        help='Show configuration settings')
     parser.add_argument('--set-config', nargs=2, metavar=('KEY', 'VALUE'),
                        help='Set configuration value')
-    parser.add_argument('--get-config', type=str,
+    parser.add_argument('--get-config', type=str, metavar='KEY',
                        help='Get configuration value')
-    parser.add_argument('--run-tool', type=str,
+    parser.add_argument('--run-tool', type=str, metavar='TOOL_NAME',
                        help='Run a specific tool')
     parser.add_argument('--list-ssh-hosts', action='store_true',
                           help='List SSH hosts')
