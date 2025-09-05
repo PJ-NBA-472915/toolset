@@ -48,10 +48,12 @@ class AuthenticationManager:
         
         # Get authentication method
         auth_methods = [
-            'Google Cloud OAuth (gcloud)',
+            'Google Cloud Service Account',
             'API Key Authentication',
             'Skip Authentication (Limited Features)'
         ]
+        if os.isatty(0):
+            auth_methods.insert(0, 'Google Cloud OAuth (gcloud)')
         
         auth_choice = inquirer.list_input(
             "Select authentication method:",
@@ -64,11 +66,59 @@ class AuthenticationManager:
         
         if auth_choice == 'Google Cloud OAuth (gcloud)':
             return self._authenticate_with_gcloud()
+        elif auth_choice == 'Google Cloud Service Account':
+            return self._authenticate_with_service_account()
         elif auth_choice == 'API Key Authentication':
             return self._authenticate_with_api_key()
         
         return False
     
+    def _authenticate_with_service_account(self) -> bool:
+        """Authenticate using a Google Cloud service account"""
+        try:
+            console.print("[yellow]Authenticating with Google Cloud Service Account...[/yellow]")
+
+            # Check if gcloud is available
+            if not self._check_gcloud_available():
+                console.print("[red]gcloud CLI is not available. Please install Google Cloud SDK.[/red]")
+                return False
+
+            # Check for GOOGLE_APPLICATION_CREDENTIALS environment variable
+            key_file_path = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+            if not key_file_path or not os.path.exists(key_file_path):
+                console.print("[red]GOOGLE_APPLICATION_CREDENTIALS environment variable not set or key file not found.[/red]")
+                console.print("Please set the environment variable to the path of your service account key file.")
+                return False
+
+            # Activate service account
+            console.print(f"[blue]Activating service account with key file: {key_file_path}[/blue]")
+            result = subprocess.run(
+                ['gcloud', 'auth', 'activate-service-account', f'--key-file={key_file_path}'],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+
+            if result.returncode != 0:
+                console.print(f"[red]Service account authentication failed: {result.stderr}[/red]")
+                return False
+
+            console.print("[green]Service account authentication successful![/green]")
+
+            # Get credentials and project info
+            return self._get_gcloud_credentials()
+
+        except subprocess.TimeoutExpired:
+            console.print("[red]Service account authentication timed out. Please try again.[/red]")
+            return False
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Authentication cancelled by user[/yellow]")
+            return False
+        except Exception as e:
+            self.logger.error(f"Service account authentication error: {e}")
+            console.print(f"[red]Service account authentication error: {e}[/red]")
+            return False
+
     def _authenticate_with_gcloud(self) -> bool:
         """Authenticate using Google Cloud OAuth via gcloud CLI"""
         try:
@@ -89,11 +139,13 @@ class AuthenticationManager:
             
             # Start gcloud authentication
             console.print("[blue]Starting gcloud authentication...[/blue]")
-            console.print("This will open your browser for Google Cloud authentication.")
             
+            console.print("Your browser will open for Google Cloud authentication.")
+            gcloud_command = ['gcloud', 'auth', 'login']
+
             # Run gcloud auth login
             result = subprocess.run(
-                ['gcloud', 'auth', 'login', '--no-launch-browser'],
+                gcloud_command,
                 capture_output=True,
                 text=True,
                 timeout=300  # 5 minute timeout

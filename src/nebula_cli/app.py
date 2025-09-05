@@ -355,7 +355,7 @@ Examples:
 
 def run_headless_mode(args, nebula_cli):
     """Run the CLI in headless mode based on arguments."""
-    log.info(f"Running in headless mode with args: {vars(args)}")
+    log.info("Running in headless mode with args: %s", vars(args))
     
     try:
         if args.system_info:
@@ -641,7 +641,7 @@ def main():
     
     # Initialize logging
     log.info("Starting Nebula CLI")
-    log.info(f"Command-line arguments: {vars(args)}")
+    log.info("Command-line arguments: %s", vars(args))
     
     # Initialize Nebula CLI
     nebula_cli = NebulaCLI()
