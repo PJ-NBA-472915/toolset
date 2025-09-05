@@ -1,0 +1,16 @@
+{
+  "packages": [
+    "python@3.11",
+    "poetry@1.7.1"
+  ],
+  "shell": {
+    "init_hook": [
+      "export $(grep -v '^#' .env | xargs)"
+    ]
+  },
+  "env": {
+    "PYTHONPATH":              "${PYTHONPATH}:${PWD}",
+    "PYTHONUNBUFFERED":        "1",
+    "PYTHONDONTWRITEBYTECODE": "1"
+  }
+}

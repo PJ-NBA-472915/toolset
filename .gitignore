@@ -10,3 +10,9 @@
 *.pyz
 *.pywz
 *.pyzw
+
+.env
+
+# Devbox
+devbox.lock
+.devbox
