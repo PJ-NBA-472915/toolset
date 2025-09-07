@@ -1,0 +1,165 @@
+{
+  "id": "2025-09-05-rework-ssh-update-feature",
+  "title": "Rework SSH Update Feature",
+  "owner": "Assistant",
+  "status": "planned",
+  "created_at": "2025-09-05 19:24",
+  "updated_at": "2025-09-05 19:41",
+  "progress_percent": 0,
+  "tags": ["ssh", "cli", "ui", "refactor"],
+  "summary": "Completely refactor the SSH config functionality focused on worker instances since current version is not working. This will be done in iterative steps, starting with making 'Updating ssh config' a primary menu option with robust worker instance SSH management.",
+  "success_criteria": [
+    {"text": "SSH config update is available as a primary menu option", "checked": false},
+    {"text": "User can easily manage SSH configuration for worker instances", "checked": false},
+    {"text": "SSH update workflow is intuitive and user-friendly", "checked": false},
+    {"text": "Worker instance SSH config functionality works reliably and correctly", "checked": false},
+    {"text": "Worker instance SSH management (list, add, update, delete) is fully functional", "checked": false},
+    {"text": "Integration with worker instance management is seamless", "checked": false}
+  ],
+  "acceptance_checks": [
+    {"text": "Primary menu shows 'Updating ssh config' as a top-level option", "checked": false},
+    {"text": "Worker instance SSH config update flow works without errors", "checked": false},
+    {"text": "Worker instance SSH host listing functionality works correctly", "checked": false},
+    {"text": "Worker instance SSH host adding functionality works correctly", "checked": false},
+    {"text": "Worker instance SSH host updating functionality works correctly", "checked": false},
+    {"text": "Worker instance SSH config file is properly managed and formatted", "checked": false},
+    {"text": "Worker instance SSH config integrates with instance management", "checked": false}
+  ],
+  "subtasks": [
+    "Analyze current SSH config implementation and identify issues with worker instances",
+    "Design new worker instance SSH config management system from scratch",
+    "Implement new WorkerInstanceSSHManager class with robust functionality",
+    "Create primary menu option for worker instance SSH config updates",
+    "Implement comprehensive worker instance SSH management (CRUD operations)",
+    "Integrate with existing worker instance management functionality",
+    "Test all worker instance SSH config functionality thoroughly",
+    "Add error handling and validation for worker instance SSH operations"
+  ],
+  "todo": [
+    {
+      "text": "Analyze current SSH config implementation and identify specific issues with worker instances",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Design new worker instance SSH config management system architecture",
+      "status": "not-started", 
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Implement new WorkerInstanceSSHManager class with robust functionality",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Create primary menu option for 'Updating ssh config' focused on worker instances",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Implement comprehensive worker instance SSH host CRUD operations",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Integrate with existing worker instance management functionality",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Add proper error handling and validation for worker instance SSH operations",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    },
+    {
+      "text": "Test all worker instance SSH config functionality thoroughly",
+      "status": "not-started",
+      "date_started": null,
+      "date_stopped": null
+    }
+  ],
+  "changelog": [
+    {
+      "timestamp": "2025-09-05 19:24",
+      "text": "Task created - Initial analysis of current SSH config implementation shows it's currently a submenu under 'SSH Config' with options for listing, updating, and adding hosts"
+    },
+    {
+      "timestamp": "2025-09-05 19:40",
+      "text": "Updated task scope - User confirmed current SSH config is not working and we can completely refactor without worrying about breaking changes"
+    },
+    {
+      "timestamp": "2025-09-05 19:41",
+      "text": "Refined focus - User clarified that SSH changes should be focused specifically on worker instances rather than general SSH host management"
+    }
+  ],
+  "decisions": [
+    "Will maintain iterative approach as requested by user",
+    "First iteration focuses on making SSH config update a primary menu option",
+    "Can completely refactor SSH functionality since current version is not working",
+    "Will build robust, reliable worker instance SSH config management from scratch",
+    "Focus specifically on worker instances rather than general SSH host management"
+  ],
+  "lessons_learned": [
+    "Current SSH config implementation has issues and is not working properly",
+    "SSHConfigManager class exists but needs complete overhaul",
+    "Main menu currently has 'SSH Config' as a submenu option",
+    "User confirmed we can break existing functionality to fix it properly",
+    "Focus should be on worker instances specifically, not general SSH host management"
+  ],
+  "issues_risks": [
+    "Current SSH config functionality is broken and needs complete rewrite",
+    "Need to ensure new implementation is robust and handles edge cases",
+    "Worker instance SSH config file parsing and writing needs to be reliable",
+    "User experience should be intuitive and error-free",
+    "Need to integrate properly with existing worker instance management",
+    "Worker instance identification and mapping needs to be accurate"
+  ],
+  "next_steps": [
+    "Get user confirmation on task scope and approach",
+    "Begin with first iteration - primary menu option",
+    "Plan subsequent iterations based on user feedback"
+  ],
+  "references": [
+    "src/nebula_cli/app.py - Main CLI application with menu structure",
+    "src/nebula_cli/ssh_config_manager.py - SSH configuration management",
+    "Current SSH config is at lines 533-588 in app.py"
+  ],
+  "prompts": [
+    {
+      "timestamp": "2025-09-05 19:24",
+      "text": "Please create a task to rework what the ssh update feature does. We will work in steps and iterations so keep the task open for now. Let the first iteration allow me to choose Updating ssh config as an option in the primary menu.",
+      "context": "User wants to rework SSH update feature in iterations, starting with primary menu option"
+    },
+    {
+      "timestamp": "2025-09-05 19:40",
+      "text": "You can completely refactor the ssh config and not worry about breaking changes. the current version is not working.",
+      "context": "User confirmed current SSH config is broken and we can completely refactor it"
+    },
+    {
+      "timestamp": "2025-09-05 19:41",
+      "text": "have the ssh changes be focused on the worker instances",
+      "context": "User clarified that SSH changes should focus specifically on worker instances"
+    }
+  ],
+  "migration": {
+    "migrated": false,
+    "source_path": null,
+    "method": null,
+    "migrated_at": null
+  },
+  "metadata": {
+    "current_ssh_implementation": {
+      "location": "app.py lines 533-588",
+      "menu_structure": "SSH Config submenu with List/Update/Add options",
+      "manager_class": "SSHConfigManager",
+      "functions": ["get_ssh_hosts", "update_ssh_host", "add_ssh_host"]
+    }
+  }
+}

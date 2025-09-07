@@ -1,0 +1,97 @@
+# Container ignore file for Nebula toolset
+# Excludes unnecessary files from container build context
+
+# Version control
+.git/
+.gitignore
+.gitmodules
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# IDE and editor files
+.vscode/
+.cursor/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs and temporary files
+*.log
+logs/
+.logs/
+*.pid
+.api.pid
+
+# Local storage and secrets
+.storage/
+.secrets/
+.cache/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Documentation build
+docs/_build/
+site/
+
+# OS specific files
+Thumbs.db
+.DS_Store
+*.tmp
+*.temp
+
+# Local development files
+.env.local
+.env.development
+*.local
+
+# Build artifacts
+dist/
+build/
+*.tar.gz
+*.whl
+
+# Memory bank (might contain sensitive information)
+memory-bank/context/
+memory-bank/rules/
+memory-bank/scripts/
+
+# Task files (project specific)
+tasks/

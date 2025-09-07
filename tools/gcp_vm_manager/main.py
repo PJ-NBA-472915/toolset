@@ -20,63 +20,64 @@ import inquirer
 from pathlib import Path
 
 # Add src to path to import nebula_cli modules
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
-from nebula_cli.ssh_config_manager import SSHConfigManager
+# sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# from nebula_cli.ssh_config_manager import SSHConfigManager
 
 console = Console()
 
-def handle_ssh_config_update(instance_id: str, instance_name: str, external_ip: str, args: argparse.Namespace):
-    """Handles the SSH config update process."""
-    ssh_manager = SSHConfigManager()
-    hostname = ssh_manager.get_hostname_for_instance(instance_id)
+# def handle_ssh_config_update(instance_id: str, instance_name: str, external_ip: str, args: argparse.Namespace):
+#     """Handles the SSH config update process."""
+#     ssh_manager = SSHConfigManager()
+#     hostname = ssh_manager.get_hostname_for_instance(instance_id)
 
-    if hostname:
-        # Update existing entry
-        console.print(f"[blue]Updating SSH config for host '{hostname}'...[/blue]")
-        user = args.ssh_user if args.ssh_user else inquirer.text("Enter user for SSH connection:")
-        key_path = args.ssh_key_path if args.ssh_key_path else inquirer.text("Enter path to private key for SSH connection:")
-        ssh_manager.update_ssh_host(hostname, external_ip, user, key_path)
-        console.print(f"[green]SSH config updated for host '{hostname}'.[/green]")
-    else:
-        if args.yes:
-            new_host = instance_name
-            user = args.ssh_user if args.ssh_user else "nebula"
-            key_path = args.ssh_key_path if args.ssh_key_path else f"~/.ssh/{instance_name}_key"
-            ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
-            ssh_manager.set_hostname_for_instance(instance_id, new_host)
-            console.print(f"[green]New SSH host '{new_host}' created.[/green]")
-            return
+#     if hostname:
+#         # Update existing entry
+#         console.print(f"[blue]Updating SSH config for host '{hostname}'...[/blue]")
+#         user = args.ssh_user if args.ssh_user else inquirer.text("Enter user for SSH connection:")
+#         key_path = args.ssh_key_path if args.ssh_key_path else inquirer.text("Enter path to private key for SSH connection:")
+#         ssh_manager.update_ssh_host(hostname, external_ip, user, key_path)
+#         console.print(f"[green]SSH config updated for host '{hostname}'.[/green]")
+#     else:
+#         if args.yes:
+#             new_host = instance_name
+#             user = args.ssh_user if args.ssh_user else "nebula"
+#             key_path = args.ssh_key_path if args.ssh_key_path else f"~/.ssh/{instance_name}_key"
+#             ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
+#             ssh_manager.set_hostname_for_instance(instance_id, new_host)
+#             console.print(f"[green]New SSH host '{new_host}' created.[/green]")
+#             return
 
-        # Prompt user to create a new entry or update an existing one
-        console.print("[blue]SSH configuration for this instance is not set up.[/blue]")
-        hosts = ssh_manager.get_ssh_hosts()
-        choices = hosts + ["Create a new host"]
+#         # Prompt user to create a new entry or update an existing one
+#         console.print("[blue]SSH configuration for this instance is not set up.[/blue]")
+#         hosts = ssh_manager.get_ssh_hosts()
+#         choices = hosts + ["Create a new host"]
         
-        questions = [
-            inquirer.List('host_choice',
-                          message="Choose an existing SSH host to update or create a new one:",
-                          choices=choices)
-        ]
-        answers = inquirer.prompt(questions)
+#         questions = [
+#             inquirer.List('host_choice',
+#                           message="Choose an existing SSH host to update or create a new one:",
+#                           choices=choices)
+#         ]
+#         answers = inquirer.prompt(questions)
         
-        if not answers:
-            return
+#         if not answers:
+#             return
 
-        choice = answers['host_choice']
+#         choice = answers['host_choice']
         
-        if choice == "Create a new host":
-            new_host = inquirer.text("Enter a name for the new SSH host:")
-            user = inquirer.text("Enter user for SSH connection:")
-            key_path = inquirer.text("Enter path to private key for SSH connection:")
-            ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
-            ssh_manager.set_hostname_for_instance(instance_id, new_host)
-            console.print(f"[green]New SSH host '{new_host}' created.[/green]")
-        else:
-            user = inquirer.text("Enter user for SSH connection:")
-            key_path = inquirer.text("Enter path to private key for SSH connection:")
-            ssh_manager.update_ssh_host(choice, external_ip, user, key_path)
-            ssh_manager.set_hostname_for_instance(instance_id, choice)
-            console.print(f"[green]SSH host '{choice}' updated.[/green]")
+#         if choice == "Create a new host":
+#             new_host = inquirer.text("Enter a name for the new SSH host:")
+#             user = inquirer.text("Enter user for SSH connection:")
+#             key_path = inquirer.text("Enter path to private key for SSH connection:")
+#             ssh_manager.add_ssh_host(new_host, external_ip, user, key_path)
+#             ssh_manager.set_hostname_for_instance(instance_id, new_host)
+#             console.print(f"[green]New SSH host '{new_host}' created.[/green]")
+#         else:
+#             user = inquirer.text("Enter user for SSH connection:")
+#             key_path = inquirer.text("Enter path to private key for SSH connection:")
+#             ssh_manager.update_ssh_host(choice, external_ip, user, key_path)
+#             ssh_manager.set_hostname_for_instance(instance_id, choice)
+#             console.print(f"[green]SSH host '{choice}' updated.[/green]")
+
 
 class GCPVMManager:
     def __init__(self):
@@ -301,19 +302,19 @@ class GCPVMManager:
                     self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
 
                 # Get instance details to find the external IP
-                instance_details = self.get_instance_details(instance_name, zone, project_id)
-                if instance_details:
-                    external_ip = None
-                    for network_interface in instance_details.get('networkInterfaces', []):
-                        access_configs = network_interface.get('accessConfigs', [])
-                        if access_configs:
-                            external_ip = access_configs[0].get('natIP')
-                            break
+                # instance_details = self.get_instance_details(instance_name, zone, project_id)
+                # if instance_details:
+                #     external_ip = None
+                #     for network_interface in instance_details.get('networkInterfaces', []):
+                #         access_configs = network_interface.get('accessConfigs', [])
+                #         if access_configs:
+                #             external_ip = access_configs[0].get('natIP')
+                #             break
                     
-                    if external_ip:
-                        handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
-                    else:
-                        self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
+                #     if external_ip:
+                #         handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
+                #     else:
+                #         self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
                 
                 return True
             else:
@@ -422,19 +423,19 @@ class GCPVMManager:
                 self.wait_for_instance_status(instance_name, zone, project_id, "RUNNING")
                 
                 # Get instance details to find the external IP
-                instance_details = self.get_instance_details(instance_name, zone, project_id)
-                if instance_details:
-                    external_ip = None
-                    for network_interface in instance_details.get('networkInterfaces', []):
-                        access_configs = network_interface.get('accessConfigs', [])
-                        if access_configs:
-                            external_ip = access_configs[0].get('natIP')
-                            break
+                # instance_details = self.get_instance_details(instance_name, zone, project_id)
+                # if instance_details:
+                #     external_ip = None
+                #     for network_interface in instance_details.get('networkInterfaces', []):
+                #         access_configs = network_interface.get('accessConfigs', [])
+                #         if access_configs:
+                #             external_ip = access_configs[0].get('natIP')
+                #             break
                     
-                    if external_ip:
-                        handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
-                    else:
-                        self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
+                #     if external_ip:
+                #         handle_ssh_config_update(instance_details['id'], instance_name, external_ip, args)
+                #     else:
+                #         self.console.print("[yellow]⚠️  Could not find external IP for the instance.[/yellow]")
                 
                 return True
             else:

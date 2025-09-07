@@ -1,0 +1,43 @@
+
+{
+  "id": "2025-09-06-refactor-cli-to-api-service",
+  "title": "Refactor CLI to API Service",
+  "owner": "Assistant",
+  "status": "planned",
+  "created_at": "2025-09-06",
+  "updated_at": "2025-09-06",
+  "progress_percent": 0,
+  "tags": ["api", "cli", "refactor", "architecture"],
+  "summary": "Refactor the existing CLI application into a RESTful API service. A new, simpler CLI will be created to manage the API service (start, stop, logs). This addresses the user's difficulty with the current dual-mode CLI.",
+  "success_criteria": [
+    {"text": "All core functionality of the original CLI is exposed via RESTful API endpoints.", "checked": false},
+    {"text": "A new, lightweight CLI tool exists for managing the API service lifecycle (start, stop, status, logs).", "checked": false},
+    {"text": "The API is well-documented (e.g., using OpenAPI/Swagger).", "checked": false},
+    {"text": "The new architecture is more maintainable and easier to interact with.", "checked": false}
+  ],
+  "subtasks": [
+    "Analyze current CLI functionality in `src/nebula_cli`.",
+    "Choose a suitable API framework (e.g., FastAPI).",
+    "Design the RESTful API endpoints.",
+    "Create a new directory structure for the API service (e.g., `src/nebula_api`).",
+    "Implement the API service, moving business logic from the old CLI.",
+    "Implement the new management CLI.",
+    "Add dependencies (e.g., `fastapi`, `uvicorn`) to `requirements.txt`.",
+    "Create documentation for the new API.",
+    "Test the new API and management CLI."
+  ],
+  "decisions": [
+    "Proceed with refactoring the CLI into an API service as requested.",
+    "A new management CLI will be created for service lifecycle.",
+    "FastAPI is the proposed framework due to its speed and automatic documentation."
+  ],
+  "issues_risks": [
+    "This is a significant architectural change and may have unforeseen consequences.",
+    "Care must be taken to correctly migrate all existing functionality.",
+    "Dependencies will be added to the project."
+  ],
+  "next_steps": [
+    "Get user confirmation on the proposed plan.",
+    "Begin analysis of the existing CLI application."
+  ]
+}

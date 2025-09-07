@@ -2,20 +2,29 @@
   "active_tasks": [],
   "recently_completed": [
     {
-      "title": "Move manager module out of memory bank to root directory",
-      "status": "completed",
-      "progress_percent": 100,
-      "updated_at": "2025-08-28 09:00",
-      "latest_work": "Task marked as completed by user request.",
-      "remaining_todo": []
+      "title": "Add Logging Framework to CLI",
+      "done_on": "2025-09-04 14:30",
+      "summary": "2025-09-04 14:30 — Implemented robust logging framework with Loguru, JSON output, and daily rotation. All CLI commands now generate audit logs."
     },
     {
-      "title": "Consolidate docker-compose into single stack",
-      "status": "completed",
-      "progress_percent": 100,
-      "updated_at": "2025-08-28 09:00",
-      "latest_work": "Task marked as completed by user request.",
-      "remaining_todo": []
+      "title": "Add CLI Authentication System",
+      "done_on": "2025-09-04 12:57",
+      "summary": "2025-09-04 12:57 — Implemented SQLite-based authentication system with project ID management and persistent credential storage."
+    },
+    {
+      "title": "Add 'Manage GCP VM Instance' Interactive Flow",
+      "done_on": "2025-09-04 16:35",
+      "summary": "2025-09-04 16:35 — Created comprehensive GCP VM management tool with interactive and headless modes, including bulk operations."
+    },
+    {
+      "title": "Update README file to reflect current repository state",
+      "done_on": "2025-09-04 14:34",
+      "summary": "2025-09-04 14:34 — Updated README with comprehensive documentation of authentication, database management, and tools directory."
+    },
+    {
+      "title": "Update SSH Config on Instance Creation and Start",
+      "done_on": "2025-09-04T20:30:00Z",
+      "summary": "2025-09-04T20:30:00Z — Implemented SSH config management with persistent instance-to-hostname mapping and automated updates."
     }
   ]
 }
