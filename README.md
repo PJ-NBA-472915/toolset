@@ -1,381 +1,314 @@
 # Nebula CLI
 
-A powerful command-line interface for the Nebula toolset, providing an intuitive way to interact with various tools and utilities. The CLI features comprehensive authentication, database management, and a modular tool system for managing cloud resources and development workflows.
+A streamlined command-line interface for VM management with Google Cloud Platform. This simplified version focuses on exactly 4 core actions that you need for VM management.
 
 ## Features
 
-- **Interactive Menu System**: Easy-to-use arrow key navigation with rich terminal UI
-- **Authentication Management**: GCP OAuth integration with project ID management
-- **Database Management**: SQLite-based storage for authentication and configuration data
-- **Tool System**: Modular architecture for running and managing various tools
-- **GCP VM Management**: Comprehensive instance management with bulk operations
-- **Rich Output**: Beautiful terminal output with colors, tables, and formatting
-- **System Information**: Display system details and environment information
-- **Toolset Discovery**: Automatically discover and list available tools
-- **Tool Execution**: Run specific tools from the command line or interactively
-- **Comprehensive Logging**: Detailed logging for debugging and monitoring
-- **Headless Mode**: Support for automation and scripting
-- **Development Tools**: Integrated testing, linting, and build system
+- **4 Core Commands**: `list`, `start`, `stop`, `setup-ssh`
+- **GCP Integration**: Direct integration with Google Cloud Platform
+- **SSH Config Management**: Automatic SSH configuration updates
+- **Simple Interface**: No complex menus or unnecessary features
+- **Rich Output**: Beautiful terminal formatting with colors and tables
 
 ## Installation
 
 ### Prerequisites
 
 - Python 3.11 or higher
-- pip or uv package manager
-- make (for using the Makefile)
-- Google Cloud SDK (for GCP authentication features)
-- SQLite3 (included with Python)
+- Google Cloud SDK installed and configured
+- Authenticated with `gcloud auth login`
 
-### Quick Start with Makefile
-
-```bash
-# Setup everything and run (recommended for first time)
-make quickstart
-
-# Or step by step:
-make setup-venv    # Create virtual environment
-make install-dev   # Install in development mode
-make run           # Run the CLI
-```
-
-### Install Dependencies
-
-```bash
-# Using pip
-pip install -r requirements.txt
-
-# Using uv
-uv pip install -r requirements.txt
-
-# Using make
-make install
-```
-
-### Development Installation
+### Quick Start
 
 ```bash
 # Clone the repository
 git clone <repository-url>
 cd toolset
 
-# Install in development mode
-pip install -e .
+# Activate virtual environment (if using one)
+source venv/bin/activate
 
-# Or using make
-make install-dev
+# Install dependencies (if needed)
+pip install -r requirements.txt
+
+# Test the CLI
+python test_simplified_cli.py
 ```
 
 ## Usage
 
-### Interactive Mode (Default)
+### Quick Start with Make Commands
 
-Run the CLI without arguments to enter interactive mode:
+The easiest way to use the CLI is through the provided Make commands:
 
 ```bash
-python src/nebula_cli/app.py
-# or
-make run
+# 1. Setup devbox environment
+make devbox-setup
+
+# 2. Enter devbox environment
+devbox shell
+
+# 3. Use the CLI commands
+python src/cli/app.py list-vms
+python src/cli/app.py start-vm my-instance --zone europe-west1-d
+python src/cli/app.py stop-vm my-instance --zone europe-west1-d
 ```
 
-The interactive mode provides:
-- **Authentication Management**: Login/logout, project selection
-- **Database Operations**: View and manage stored data
-- **Tool Execution**: Run available tools interactively
-- **System Information**: View system and environment details
+### Simple Make Commands
 
-### Command Line Arguments
+Use these simple Make commands:
 
 ```bash
-# Show system information
-python src/nebula_cli/app.py --system-info
+make list                    # List all VMs
+make start worker-1          # Start a VM
+make stop worker-1           # Stop a VM  
+make setup-ssh worker-1      # Update SSH config
+```
 
-# Show toolset information
-python src/nebula_cli/app.py --toolset-info
+### Make Commands
 
-# Run a specific tool
-python src/nebula_cli/app.py --run-tool <tool-name>
+The Makefile provides convenient commands to show you exactly what to run:
 
-# GCP VM management (via tools)
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-all
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-all --wait
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-all --yes --wait
-
+```bash
 # Show help
-python src/nebula_cli/app.py --help
+make help
+
+# Show detailed CLI help
+make cli-help
+
+# Show how to use each command
+make list-vms
+make start-vm INSTANCE=my-vm ZONE=us-central1-a
+make stop-vm INSTANCE=my-vm ZONE=us-central1-a
+make update-ssh-config INSTANCE=my-vm ZONE=us-central1-a
 ```
 
-### Authentication
+### Direct CLI Usage
 
-The CLI supports Google Cloud Platform authentication:
+The simplified CLI provides exactly 4 commands:
+
+### 1. List VMs
 
 ```bash
-# Authenticate with GCP (interactive)
-python src/nebula_cli/app.py
-# Select "Authentication" from the menu
+# List all VM instances
+python src/cli/app.py list-vms
 
-# Check authentication status
-python src/nebula_cli/app.py --system-info
+# List VMs in a specific project
+python src/cli/app.py list-vms --project my-project-id
+
+# List VMs in a specific zone
+python src/cli/app.py list-vms --zone us-central1-a
 ```
 
-### Database Management
-
-The CLI uses SQLite for storing authentication and configuration data:
-
-- **Location**: `~/.nebula/nebula_cli.db`
-- **Tables**: Authentication, configuration, and tool data
-- **Management**: Through interactive menu or programmatic API
-
-### As a Module
-
-```python
-from nebula_cli import NebulaCLI
-from nebula_cli.auth import AuthenticationManager
-from nebula_cli.database import DatabaseManager
-
-# Initialize CLI
-cli = NebulaCLI()
-
-# Authentication
-auth_manager = AuthenticationManager()
-if not auth_manager.is_authenticated():
-    auth_manager.authenticate_user()
-
-# Database operations
-db_manager = DatabaseManager()
-auth_data = db_manager.get_auth_data()
-
-# Tool execution
-cli.show_system_info()
-cli.show_toolset_info()
-```
-
-## Project Structure
-
-```
-toolset/
-├── src/
-│   └── nebula_cli/
-│       ├── __init__.py
-│       ├── app.py              # Main CLI application
-│       ├── auth.py             # Authentication manager
-│       └── database.py         # Database manager
-├── tools/                      # Modular tool system
-│   ├── example_tool/
-│   │   ├── __init__.py
-│   │   └── main.py
-│   └── list_gcp_workers/
-│       ├── __init__.py
-│       ├── main.py
-│       ├── README.md
-│       └── requirements.txt
-├── memory-bank/                # Documentation and context
-│   ├── context/
-│   ├── docs/
-│   ├── rules/
-│   └── scripts/
-├── tasks/                      # Task management system
-│   ├── _blank_task.json
-│   ├── _schema.json
-│   └── _status.json
-├── pyproject.toml
-├── requirements.txt
-├── Makefile                    # Development workflow
-└── README.md
-```
-
-## GCP VM Manager
-
-The GCP VM Manager is a powerful tool for managing Google Cloud Platform virtual machine instances with both interactive and command-line interfaces.
-
-### Features
-
-- **Bulk Operations**: Start all instances or stop all instances at once
-- **Status Filtering**: View instances by status (running, terminated, all)
-- **Interactive Selection**: Use arrow keys to select instances from lists
-- **Safety Confirmations**: Prompts for confirmation before destructive actions
-- **Wait Support**: Wait for operations to complete before returning
-- **Rich Output**: Beautiful formatted tables with instance details
-
-### Usage Examples
+### 2. Start VM
 
 ```bash
-# Interactive mode (shows available instances and usage info)
-python src/nebula_cli/app.py --run-tool gcp_vm_manager
+# Start a VM instance
+python src/cli/app.py start-vm my-instance --zone us-central1-a
 
-# List instances
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-all
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-running
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --list-terminated
-
-# Bulk operations
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-all --wait
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-all --yes --wait
-
-# Individual instance management
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --start-instance my-instance --zone us-central1-a --wait
-python src/nebula_cli/app.py --run-tool gcp_vm_manager --stop-instance my-instance --zone us-central1-a --yes --wait
+# Start a VM in a specific project
+python src/cli/app.py start-vm my-instance --zone us-central1-a --project my-project-id
 ```
 
-### Command Line Options
+**Note**: When starting a VM, the CLI automatically updates your SSH config with the instance's external IP.
 
-- `--project`: GCP project ID (default: current project)
-- `--zone`: GCP zone to filter instances
-- `--list-all`: List all instances
-- `--list-running`: List running instances only
-- `--list-terminated`: List terminated instances only
-- `--start-instance`: Start a specific instance by name
-- `--stop-instance`: Stop a specific instance by name
-- `--start-all`: Start all terminated instances
-- `--stop-all`: Stop all running instances
-- `--yes`: Skip confirmation prompts
-- `--wait`: Wait for operation to complete before returning
-
-## Tools System
-
-The CLI includes a modular tool system located in the `tools/` directory:
-
-### Available Tools
-
-- **gcp_vm_manager**: Comprehensive Google Cloud Platform VM instance management
-  - Features: Start/stop instances, bulk operations, interactive selection, status filtering
-  - Commands: `--start-all`, `--stop-all`, `--list-running`, `--list-terminated`
-  - Usage: `make run-tool TOOL=gcp_vm_manager` or `python src/nebula_cli/app.py --run-tool gcp_vm_manager`
-
-- **list_gcp_workers**: Monitor and list Google Cloud Platform worker instances
-  - Features: Resource monitoring, network details, data export
-  - Usage: `make run-tool TOOL=list_gcp_workers`
-
-- **example_tool**: Template for creating new tools
-  - Demonstrates tool structure and integration patterns
-
-### Creating New Tools
-
-1. Create a new directory in `tools/`
-2. Add `__init__.py` and `main.py` files
-3. Implement the tool logic in `main.py`
-4. Add `requirements.txt` if needed
-5. The CLI will automatically discover and list your tool
-
-### Tool Structure
-
-```
-tools/your_tool/
-├── __init__.py
-├── main.py              # Tool implementation
-├── README.md            # Tool documentation
-└── requirements.txt     # Tool dependencies (optional)
-```
-
-## Configuration
-
-The CLI automatically creates a `.nebula` directory in your home folder for:
-- **Database**: `nebula_cli.db` (SQLite database)
-- **Log files**: `cli_logs/` (daily rotated logs)
-- **Configuration**: Future configuration files
-- **Cache data**: Future cache storage
-
-## Logging
-
-Logs are stored in `~/.nebula/cli_logs/` with daily rotation. Enable debug output by setting:
+### 3. Stop VM
 
 ```bash
-export NEBULA_CLI_DEBUG=1
+# Stop a VM instance
+python src/cli/app.py stop-vm my-instance --zone us-central1-a
+
+# Stop a VM in a specific project
+python src/cli/app.py stop-vm my-instance --zone us-central1-a --project my-project-id
 ```
 
-## Development
-
-### Development Workflow
-
-The project includes a comprehensive Makefile for development tasks:
+### 4. Update SSH Config
 
 ```bash
-# Setup and Installation
-make setup-venv       # Create virtual environment
-make install-dev      # Install in development mode
-make clean-venv       # Remove virtual environment
+# Update SSH config for a specific VM
+python src/cli/app.py update-ssh-config my-instance --zone us-central1-a
 
-# Testing and Quality
-make test             # Run all tests
-make test-cli         # Test CLI functionality
-make test-tools       # Test individual tools
-make lint             # Run linting checks
-make format           # Format code with black
-make check-deps       # Check dependency conflicts
-
-# Running and Information
-make run              # Run CLI in interactive mode
-make run-headless     # Run CLI with --help
-make run-tool TOOL=name # Run specific tool
-make show-help        # Show CLI help
-make show-system-info # Show system information
-make show-toolset-info # Show available tools
-
-# Build and Package
-make build            # Build the package
-make package          # Create distribution packages
-make install-package  # Install the built package
-make uninstall-package # Uninstall the package
-
-# Maintenance
-make clean            # Clean build artifacts and logs
-make clean-logs       # Clean log files
-make docs             # Generate documentation
+# Update SSH config in a specific project
+python src/cli/app.py update-ssh-config my-instance --zone us-central1-a --project my-project-id
 ```
 
-### Adding New Commands
+## SSH Configuration
 
-1. Extend the `NebulaCLI` class in `app.py`
-2. Add new menu options in the interactive mode
-3. Update argument parsing for headless mode
-4. Add appropriate logging
+The CLI automatically manages your SSH configuration:
 
-### Adding New Tools
+- **Location**: `~/.ssh/config`
+- **Mapping Storage**: `~/.config/nebula-cli/mappings.json`
+- **Default User**: `nebula`
+- **Default Key Path**: `~/.ssh/{instance-name}_key`
 
-1. Create a new directory in `tools/`
-2. Follow the tool structure pattern
-3. Add to the CLI's tool discovery system
-4. Update documentation
+When you start a VM or update SSH config, the CLI will:
+1. Get the instance's external IP address
+2. Create or update an SSH host entry
+3. Store the mapping for future reference
 
-### Testing
+## Authentication
+
+The CLI requires Google Cloud Platform authentication:
 
 ```bash
-# Run basic tests
-make test
+# Authenticate with GCP
+gcloud auth login
 
-# Run specific test suites
-make test-cli
-make test-tools
+# Set your project (optional, uses current project by default)
+gcloud config set project YOUR_PROJECT_ID
 
-# Run with coverage
-python -m pytest --cov=nebula_cli tests/
+# Verify authentication
+python src/cli/app.py list-vms
 ```
 
-## Contributing
+## Examples
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+### Complete Workflow
 
-## License
+```bash
+# 1. Setup environment
+make devbox-setup
+devbox shell
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+# 2. List all your VMs
+python src/cli/app.py list-vms
 
-## Documentation and Context
+# 3. Start a VM (automatically updates SSH config)
+python src/cli/app.py start-vm my-worker-vm --zone europe-west1-d
 
-The repository includes comprehensive documentation and context management:
+# 4. SSH into the VM (SSH config is already updated)
+ssh my-worker-vm
 
-- **Memory Bank**: Located in `memory-bank/`, contains project specifications, guides, and context
-- **Task Management**: JSON-based task system in `tasks/` for project tracking
-- **Tool Documentation**: Individual README files for each tool
-- **Development Guides**: Local testing and development procedures
+# 5. Stop the VM when done
+python src/cli/app.py stop-vm my-worker-vm --zone europe-west1-d
+```
+
+### Project-Specific Operations
+
+```bash
+# Enter devbox environment first
+devbox shell
+
+# Work with VMs in a specific project
+python src/cli/app.py list-vms --project my-dev-project
+python src/cli/app.py start-vm dev-vm --zone europe-west1-d --project my-dev-project
+python src/cli/app.py stop-vm dev-vm --zone europe-west1-d --project my-dev-project
+```
+
+## Make Commands Reference
+
+The Makefile provides helpful commands to guide you through using the CLI:
+
+### Basic Commands
+```bash
+make help                    # Show available Make commands
+make cli-help               # Show detailed CLI usage guide
+make devbox-setup           # Setup devbox environment
+```
+
+### Usage Guide Commands
+```bash
+make list-vms               # Show how to list VMs
+make start-vm INSTANCE=name ZONE=zone    # Show how to start a VM
+make stop-vm INSTANCE=name ZONE=zone     # Show how to stop a VM
+make update-ssh-config INSTANCE=name ZONE=zone  # Show how to update SSH config
+```
+
+### Project-Specific Guide Commands
+```bash
+make list-vms-project PROJECT=project-id [ZONE=zone]
+make start-vm-project INSTANCE=name ZONE=zone PROJECT=project-id
+make stop-vm-project INSTANCE=name ZONE=zone PROJECT=project-id
+make update-ssh-config-project INSTANCE=name ZONE=zone PROJECT=project-id
+```
+
+## Help
+
+Get help for any command:
+
+```bash
+# General help
+make cli-help
+
+# CLI help (run inside devbox shell)
+python src/cli/app.py --help
+
+# Command-specific help
+python src/cli/app.py list-vms --help
+python src/cli/app.py start-vm --help
+python src/cli/app.py stop-vm --help
+python src/cli/app.py update-ssh-config --help
+```
+
+## What Was Simplified
+
+This simplified version removes:
+- ❌ API service management (start/stop API server)
+- ❌ Complex tool system and discovery
+- ❌ Interactive menus and prompts
+- ❌ Authentication management UI
+- ❌ Database operations
+- ❌ Logging and debugging features
+- ❌ Bulk operations (start-all, stop-all)
+
+This simplified version keeps:
+- ✅ Core VM management (start, stop, list)
+- ✅ SSH config management
+- ✅ GCP integration
+- ✅ Rich terminal output
+- ✅ Project and zone filtering
+
+## Testing
+
+Run the test suite to verify everything works:
+
+```bash
+python test_simplified_cli.py
+```
+
+This will test all 4 commands and verify they're working correctly.
+
+## Troubleshooting
+
+### Authentication Issues
+
+```bash
+# Re-authenticate with GCP
+gcloud auth login
+
+# Check current authentication
+gcloud auth list
+
+# Set correct project
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### SSH Config Issues
+
+```bash
+# Check SSH config file
+cat ~/.ssh/config
+
+# Check instance mappings
+cat ~/.config/nebula-cli/mappings.json
+
+# Manually update SSH config for a VM
+python src/cli/app.py update-ssh-config my-instance --zone us-central1-a
+```
+
+### Permission Issues
+
+Make sure your GCP account has the necessary permissions:
+- `compute.instances.list`
+- `compute.instances.start`
+- `compute.instances.stop`
+- `compute.instances.get`
 
 ## Support
 
-For support and questions:
-- Create an issue on GitHub
-- Contact the team at team@nebula.dev
-- Check the documentation in `memory-bank/docs/`
-- Review task status in `tasks/_status.json`
+This simplified CLI is designed to be straightforward and reliable. If you encounter issues:
+
+1. Check your GCP authentication: `gcloud auth list`
+2. Verify your project: `gcloud config get-value project`
+3. Test with the test script: `python test_simplified_cli.py`
+4. Check the help: `python src/cli/app.py --help`

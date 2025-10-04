@@ -129,15 +129,15 @@ class SimplifiedVMManager:
             if hostname:
                 # Update existing entry
                 self.console.print(f"[blue]Updating SSH config for host '{hostname}'...[/blue]")
-                user = "nebula"  # Default user
-                key_path = f"~/.ssh/{instance_name}_key"  # Default key path
+                user = "worker"  # Default user
+                key_path = f"~/.ssh/keys/worker-1@pj-nba-472915"  # Default key path
                 self.ssh_manager.update_ssh_host(hostname, external_ip, user, key_path)
                 self.console.print(f"[green]✅ SSH config updated for host '{hostname}'[/green]")
             else:
                 # Create new entry
                 self.console.print(f"[blue]Creating new SSH config entry for '{instance_name}'...[/blue]")
                 user = "nebula"  # Default user
-                key_path = f"~/.ssh/{instance_name}_key"  # Default key path
+                key_path = f"~/.ssh/keys/worker-1@pj-nba-472915"  # Default key path
                 self.ssh_manager.add_ssh_host(instance_name, external_ip, user, key_path)
                 self.ssh_manager.set_hostname_for_instance(instance_name, instance_name)
                 self.console.print(f"[green]✅ New SSH host '{instance_name}' created[/green]")
