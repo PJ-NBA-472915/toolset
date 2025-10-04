@@ -1,6 +1,6 @@
-# Nebula API Makefile
+# Nebula Simplified CLI Makefile
 
-.PHONY: help start stop tail container-build container-run container-api container-cli container-shell container-clean container-help
+.PHONY: help list-vms start-vm stop-vm update-ssh-config cli-help devbox-setup container-build container-run container-api container-cli container-shell container-clean container-help
 
 # Variables
 PID_FILE := .api.pid
@@ -12,13 +12,18 @@ API_PORT := 8000
 
 # Default target
 help:
-	@echo "Nebula Toolset - Available Commands"
-	@echo "===================================="
+	@echo "Nebula Simplified CLI - VM Management"
+	@echo "====================================="
 	@echo ""
-	@echo "Local Development:"
-	@echo "  start            - Start the API service locally"
-	@echo "  stop             - Stop the API service locally"
-	@echo "  tail             - Tail the API service logs"
+	@echo "VM Management Commands (using devbox):"
+	@echo "  list-vms         - List all VM instances"
+	@echo "  start-vm         - Start a VM instance (auto-updates SSH config)"
+	@echo "  stop-vm          - Stop a VM instance"
+	@echo "  update-ssh-config - Update SSH config for a VM instance"
+	@echo "  cli-help         - Show detailed CLI help"
+	@echo ""
+	@echo "Setup:"
+	@echo "  devbox-setup     - Setup devbox environment"
 	@echo ""
 	@echo "Container Commands:"
 	@echo "  container-build  - Build the container image"

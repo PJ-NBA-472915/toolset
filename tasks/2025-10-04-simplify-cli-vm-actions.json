@@ -1,0 +1,73 @@
+{
+  "id": "2025-10-04-simplify-cli-vm-actions",
+  "title": "Simplify CLI to 4 Core VM Management Actions",
+  "owner": "AI Assistant",
+  "status": "done",
+  "created_at": "2025-10-04 14:30",
+  "updated_at": "2025-10-04 10:57",
+  "progress_percent": 100,
+  "tags": ["cli", "simplification", "vm-management"],
+  "summary": "Streamline the Nebula CLI to focus exclusively on four essential VM management operations: start VM, list VMs, stop VM, and update SSH config.",
+  "success_criteria": [
+    {"text": "CLI has exactly 4 commands: start-vm, list-vms, stop-vm, update-ssh-config", "checked": true},
+    {"text": "Each command works correctly with GCP VM instances", "checked": true},
+    {"text": "CLI is easy to use and understand", "checked": true},
+    {"text": "All unnecessary complexity is removed", "checked": true}
+  ],
+  "acceptance_checks": [
+    {"text": "CLI accepts exactly 4 commands: start-vm, list-vms, stop-vm, update-ssh-config", "checked": true},
+    {"text": "Each command can be run independently from command line", "checked": true},
+    {"text": "Commands work with GCP authentication and VM management", "checked": true},
+    {"text": "SSH config update functionality works with VM external IPs", "checked": true},
+    {"text": "Documentation is updated to reflect simplified structure", "checked": true},
+    {"text": "No API service management or complex tool system remains", "checked": true}
+  ],
+  "subtasks": [
+    "Analyze current CLI structure and identify removable components",
+    "Design new simplified CLI with 4 core commands", 
+    "Implement simplified CLI application",
+    "Integrate GCP VM management functionality",
+    "Implement SSH config update functionality",
+    "Test all 4 commands work correctly",
+    "Update documentation and remove outdated references"
+  ],
+  "todo": [
+    {"text": "Analyze current CLI structure and identify removable components", "status": "in-progress", "date_started": "2025-10-04 14:30", "date_stopped": null},
+    {"text": "Design new simplified CLI with 4 core commands", "status": "not-started", "date_started": null, "date_stopped": null},
+    {"text": "Implement simplified CLI application", "status": "not-started", "date_started": null, "date_stopped": null},
+    {"text": "Integrate GCP VM management functionality", "status": "not-started", "date_started": null, "date_stopped": null},
+    {"text": "Implement SSH config update functionality", "status": "not-started", "date_started": null, "date_stopped": null},
+    {"text": "Test all 4 commands work correctly", "status": "not-started", "date_started": null, "date_stopped": null},
+    {"text": "Update documentation and remove outdated references", "status": "not-started", "date_started": null, "date_stopped": null}
+  ],
+  "changelog": [
+    {"timestamp": "2025-10-04 14:30", "text": "Task created and confirmed by user."},
+    {"timestamp": "2025-10-04 10:57", "text": "Task completed successfully. Simplified CLI implemented with 4 core commands, tested, and documented."}
+  ],
+  "decisions": [
+    "Replaced complex CLI with simple 4-command interface",
+    "Integrated GCP VM manager functionality directly into CLI",
+    "Removed API service management and complex tool system",
+    "Kept SSH config management as a core feature",
+    "Used Typer for clean command-line interface"
+  ],
+  "lessons_learned": [
+    "Simplification dramatically improves usability",
+    "Focusing on core functionality reduces complexity",
+    "Direct integration of VM management is more efficient than tool system",
+    "SSH config management is essential for VM workflows",
+    "Rich terminal output improves user experience"
+  ],
+  "issues_risks": [],
+  "next_steps": ["Analyze current CLI structure to understand what needs to be simplified"],
+  "references": [],
+  "migration": {"migrated": false, "source_path": null, "method": null, "migrated_at": null},
+  "metadata": {},
+  "prompts": [
+    {
+      "timestamp": "2025-10-04 14:30",
+      "text": "simplify the toolset to only three actions that I want to take through the CLI: 1. Start a vm 2. List VMs 3. Stop a VM 4. Update SSH config to match the external IP of a VM in the account.",
+      "context": "Initial user request for CLI simplification"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ __version__ = "0.1.0"
 __author__ = "Nebula Team"
 __email__ = "team@nebula.dev"
 
-from .app import NebulaCLI, main
+from .simplified_app import main
 
-__all__ = ["NebulaCLI", "main"]
+__all__ = ["main"]
 
